@@ -39,7 +39,7 @@ func updateParent(name string, bet uint64, isNew bool) {
 	if user.ID == 0 {
 		db.Create(user)
 	} else {
-		db.Model(User{}).Update(user)
+		db.Model(user).Update(user)
 	}
 }
 
@@ -70,7 +70,7 @@ func UpdateUserInfo(txmsg *Message) {
 	if user.ID == 0 {
 		db.Create(user)
 	} else {
-		db.Model(User{}).Update(user)
+		db.Model(user).Update(user)
 	}
 
 }

@@ -2,13 +2,18 @@ package app
 
 import (
 	"dappswin/conf"
+	"dappswin/database"
+
+	"github.com/jinzhu/gorm"
 )
 
 var eosConf *EosConf
+var db *gorm.DB
 
 // InitEos 启动Eos Resolver
 func Init() {
 	eosConf = newEosConf()
+	db = database.Db
 	go gameRoutine()
 	go resloveTXRoutine()
 	go checkWinRoutine()
