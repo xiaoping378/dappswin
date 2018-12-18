@@ -11,7 +11,7 @@ import (
 type User struct {
 	gorm.Model
 	Name           string `json:"Account" gorm:"size:12;unique"`
-	PName          string `json:"Pid" gorm:"size:12"`
+	PName          string `json:"Pid" gorm:"size:12;index"`
 	PNames         string `json:"Pids"`
 	Level          uint8  `json:"Level"`
 	ChildrenCount  int    `json:"ChildrenCount"`

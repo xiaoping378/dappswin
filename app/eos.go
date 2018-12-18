@@ -17,6 +17,9 @@ func Init() {
 	go gameRoutine()
 	go resloveTXRoutine()
 	go checkWinRoutine()
+	if eosConf.EnableICO {
+		go checkICORoutine()
+	}
 	go Huber.run()
 }
 
@@ -28,6 +31,10 @@ type EosConf struct {
 	FetchIdleDur   int    // 查询blk时间间隔
 	FromBlkNum     uint32 // 从哪个blocknum开始查询
 	GameAccount    string
+	ICOAccount     string
+	EnableICO      bool
+	ICOStartTime   int64
+	EOS_CGG        uint64
 }
 
 func newEosConf() *EosConf {
@@ -40,5 +47,9 @@ func newEosConf() *EosConf {
 		FetchIdleDur:   dur,
 		FromBlkNum:     uint32(num),
 		GameAccount:    conf.C.GetString("eos.GameAccount"),
+		ICOAccount:     conf.C.GetString("eos.ICOAccount"),
+		EnableICO:      conf.C.GetBool("eos.EnableICO"),
+		ICOStartTime:   conf.C.GetInt64("eos.ICOStartTime"),
+		EOS_CGG:        uint64(conf.C.GetInt("eos.EOS_CGG")),
 	}
 }

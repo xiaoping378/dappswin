@@ -25,5 +25,5 @@ func getLevel(amount uint64) uint8 {
 			return a.Level - 1
 		}
 	}
-	return 1
+	return 9
 }

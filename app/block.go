@@ -58,7 +58,7 @@ func getBlockByNum(num uint32) (*BlockRsp, error) {
 }
 
 func resolveBlock(num uint32) {
-	glog.Infof("resolving Block num: %d", num)
+	glog.V(7).Infof("resolving Block num: %d", num)
 	blkRsp, err := getBlockByNum(num)
 	if err != nil {
 		// TODO, notify chan to recheck it.
@@ -96,7 +96,7 @@ func getHeadNum() uint32 {
 
 	buf, err := ioutil.ReadAll(resp.Body)
 	if nil != err {
-		glog.Infof("getBlockByNum - ioutil.ReadAll failed : %v", err)
+		glog.Errorf("getBlockByNum - ioutil.ReadAll failed : %v", err)
 		return 0
 	}
 	info := &InfoRsp{}

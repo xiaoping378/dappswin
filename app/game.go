@@ -24,7 +24,7 @@ func gameRoutine() {
 	for {
 		select {
 		case block := <-gameChan:
-			glog.Infof("Gamemsg Coming %v, %v, 游戏开奖结束%v", block.Hash, isNumber(block.LastLetter()), isGameDone)
+			glog.V(7).Infof("Gamemsg Coming %v, %v, 游戏开奖结束%v", block.Hash, isNumber(block.LastLetter()), isGameDone)
 			tm := block.Time / 1000
 			if !isGameDone && isNumber(block.LastLetter()) {
 				gameResult += block.LastLetter()

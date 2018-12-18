@@ -1,4 +1,3 @@
-
 [gin]
 port = 8080
 runmode = "dev"
@@ -18,7 +17,10 @@ FetchIdleDur = 500
 
 FromBlkNum = 26352774
 GameAccount = "eosplaybrand"
-ICOAccount = "cryptogame11"
+EnableICO = true
+ICOAccount = "eosplaybrand"
+ICOStartTime = 1545132825000
+EOS_CGG = 20
 
 [mysql]
 host = "127.0.0.1"

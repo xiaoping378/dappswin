@@ -12,12 +12,14 @@ import (
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang/glog"
 )
 
 // TODO: wss
 
 func main() {
 	defer database.Close()
+	defer glog.Flush()
 
 	logs.Init()
 	conf.Init()

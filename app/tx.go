@@ -46,6 +46,12 @@ func resloveTXRoutine() {
 
 				for _, action := range trxS.TX.Actions {
 					if action.Account == "eosio.token" && action.Name == "transfer" {
+						if eosConf.EnableICO && action.Data.To == eosConf.ICOAccount {
+							t := models.TX{Quantity: action.Data.Quantity}
+							ico := &models.ICO{Hash: trxS.ID, Account: action.Data.From, Amount: t.Amount(), Status: pending, TimeMills: txsMsg.Time}
+							models.AddIcoRecord(ico)
+							icochan <- ico
+						}
 						if action.Data.To != eosConf.GameAccount {
 							continue
 						}
@@ -62,7 +68,7 @@ func resloveTXRoutine() {
 						txdb := &models.Tx{
 							TxID: trxS.ID, BlockNum: txsMsg.BlockNum,
 							From: action.Data.From, To: action.Data.To, Quantity: action.Data.Quantity, Memo: action.Data.Memo,
-							Status: 1, Time: txsMsg.Time, TimeMintue: txsMsg.Time / 1000 / 60}
+							Status: pending, Time: txsMsg.Time, TimeMintue: txsMsg.Time / 1000 / 60}
 
 						go models.AddTx(txdb)
 

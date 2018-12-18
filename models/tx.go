@@ -67,7 +67,7 @@ type Transaction struct {
 
 // Tx dave to DB
 type Tx struct {
-	Id       int64  `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
+	Id       int64  `gorm:"PRIMARY_KEY"`
 	TxID     string `gorm:"size:64"`
 	BlockNum uint32
 	From     string `json:"from"`
@@ -97,7 +97,6 @@ func GetTxsInGame(time int64, status int) ([]Tx, error) {
 // UpdateTx updates Tx by Id and returns error if
 // the record to be updated doesn't exist
 func UpdateTxById(m *Tx) (err error) {
-	tx := &Tx{Id: m.Id}
-	db.Model(tx).Updates(m)
+	db.Save(m)
 	return db.Error
 }

@@ -18,7 +18,7 @@ func checkWinRoutine() {
 		select {
 		case game := <-winchan:
 			glog.Infof("开奖啦，激动人心的时刻到来了。。。%v", game)
-			txs, err := models.GetTxsInGame(game.GameMintue, 1)
+			txs, err := models.GetTxsInGame(game.GameMintue, pending)
 			if err != nil {
 				glog.Error("getTxsInGame error :", err)
 			}
@@ -42,10 +42,9 @@ func checkWinRoutine() {
 					msg = &models.Message{gameType, game.BlockNum, tx.TxID, tx.Time, reward}
 					msg.HandleTimeStamp()
 					msgs = append(msgs, msg)
-
-					tx.Status = 0
-					models.UpdateTxById(&tx)
 				}
+				tx.Status = handled
+				models.UpdateTxById(&tx)
 			}
 			if len(msgs) > 0 {
 				buf, _ := json.Marshal(msgs)
