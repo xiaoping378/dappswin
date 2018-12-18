@@ -65,7 +65,7 @@ func UpdateUserInfo(txmsg *Message) {
 	}
 	user.TotalBet += amout
 	user.Level = getLevel(uint64(user.TotalBet / 1e4))
-	glog.Info("User is ", user)
+	glog.V(7).Infof("User is %#v", user)
 
 	if user.ID == 0 {
 		db.Create(user)

@@ -22,7 +22,7 @@ func resloveTXRoutine() {
 				break
 			}
 			if len(txs) == 0 {
-				glog.Infof("空块 %d", txsMsg.BlockNum)
+				glog.V(7).Infof("空块 %d", txsMsg.BlockNum)
 				break
 			}
 			txmsg := []*models.Message{}

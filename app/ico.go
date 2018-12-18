@@ -40,16 +40,16 @@ func checkICORoutine() {
 	for {
 		select {
 		case ico := <-icochan:
-			glog.Infof("有人投ICO募资了，who=>%s 额度是%s EOS", ico.Account, fmt.Sprintf("%.4f", float64(ico.Amount)/1e4))
+			glog.V(7).Infof("有人投ICO募资了，who=>%s 额度是%s EOS", ico.Account, fmt.Sprintf("%.4f", float64(ico.Amount)/1e4))
 			var amount float64
 			if ico.TimeMills-eosConf.ICOStartTime <= oneDayMills {
 				amount = getRefund(ico.Amount) / 1e4
 			}
 			amount = float64(ico.Amount*eosConf.EOS_CGG) / 1e4
 			quantity := fmt.Sprintf("%.4f", amount) + " CGG"
-			glog.Infof("===========> to %s, quantity: %s", ico.Account, quantity)
+			glog.V(7).Infof("===========> to %s, quantity: %s", ico.Account, quantity)
 			// gorm更新时，使用结构体，不会更新各类型的零值，0，false，”“ 。。。
-			if err := db.Debug().Model(ico).Update("status", handled).Error; err != nil {
+			if err := db.Model(ico).Update("status", handled).Error; err != nil {
 				glog.Error(err)
 			}
 		}
