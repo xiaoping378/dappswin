@@ -46,11 +46,12 @@ func checkICORoutine() {
 				amount = getRefund(ico.Amount) / 1e4
 			}
 			amount = float64(ico.Amount*eosConf.EOS_CGG) / 1e4
-			quantity := fmt.Sprintf("%.4f", amount) + " CGG"
-			glog.V(7).Infof("===========> to %s, quantity: %s", ico.Account, quantity)
-			// gorm更新时，使用结构体，不会更新各类型的零值，0，false，”“ 。。。
-			if err := db.Model(ico).Update("status", handled).Error; err != nil {
-				glog.Error(err)
+			quantity := fmt.Sprintf("%.4f", amount) + " " + eosConf.TokenSymbol
+			glog.Infof("奖励购买的代币===========> to %s, quantity: %s", ico.Account, quantity)
+			if err := sendTokens(ico.Account, quantity); err == nil {
+				if err := db.Model(ico).Update("status", handled).Error; err != nil {
+					glog.Error(err)
+				}
 			}
 		}
 	}

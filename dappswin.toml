@@ -8,19 +8,25 @@ EnableAdmin = false
 
 [eos]
 # TODO 节点池
-# RPCURL = https://jungle2.cryptolions.io
-RPCURL = "http://47.75.91.111"
+RPCURL = "https://jungle2.cryptolions.io"
+# RPCURL = "http://47.75.91.111"
 ChainID = "e70aaab8997e1dfce58fbfac80cbbb8fecec7b99cf982a9444273cbc64c41473"
 
 # 间隔单位（ms）
 FetchIdleDur = 500
 
-FromBlkNum = 26352774
+# FromBlkNum = 26352774
+FromBlkNum = 4320180
 GameAccount = "eosplaybrand"
+
 EnableICO = true
-ICOAccount = "eosplaybrand"
+ICOAccount = "xiaopingeos2"
 ICOStartTime = 1545132825000
+TokenAccount = "xxptoken1234"
+TokenSymbol = "EOS"
 EOS_CGG = 20
+WalletURL = "unix:///home/xxp/eosio-wallet/keosd.sock"
+WalletPW = "PW5KEVCDpGccbv7cpXkoBD5eqESYtKiu4npo5ZmdJg2DpbXR9YMx6"
 
 [mysql]
 host = "127.0.0.1"
