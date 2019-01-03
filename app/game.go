@@ -3,7 +3,6 @@ package app
 import (
 	"encoding/json"
 	"strconv"
-	"sync"
 
 	"dappswin/models"
 
@@ -12,7 +11,6 @@ import (
 
 var isGameDone bool = true
 
-var cacheLock sync.RWMutex
 var gameResult string
 
 // 奖励是5位数字

@@ -2,41 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:5fe3f6ede1c208a2efd3b78fe4df0306aa9624edd39476143d14f0326e5a8d29"
-  name = "github.com/facebookgo/clock"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "600d898af40aa09a7a93ecb9265d87b0504b6f03"
-
-[[projects]]
-  branch = "master"
-  digest = "1:1f21d86648746b776eae0dff77e4cafa2d9ccec0f0f1248c48306231ee800674"
-  name = "github.com/facebookgo/grace"
-  packages = [
-    "gracehttp",
-    "gracenet",
-  ]
-  pruneopts = "UT"
-  revision = "75cf19382434e82df4dd84953f566b8ad23d6e9e"
-
-[[projects]]
-  branch = "master"
-  digest = "1:17cb421603403a24edb0c7eeb382295dd31c72ab9ccf31cf7f0a37971f00aaa7"
-  name = "github.com/facebookgo/httpdown"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "5979d39b15c26299dc282711b0d65b113daccea6"
-
-[[projects]]
-  branch = "master"
-  digest = "1:02c7a4e944d94d6b80f51517158d10633b10775f528a3b7bdfc658d6f92415bd"
-  name = "github.com/facebookgo/stats"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "1b76add642e42c6ffba7211ad7b3939ce654526e"
-
-[[projects]]
   digest = "1:abeb38ade3f32a92943e5be54f55ed6d6e3b6602761d74b4aab4c9dd45c18abd"
   name = "github.com/fsnotify/fsnotify"
   packages = ["."]
@@ -51,6 +16,22 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+
+[[projects]]
+  digest = "1:6070b072a9882f3e627e9436a097c5fef39fde9f2a6cfc9ea8c1441a561da9dc"
+  name = "github.com/gin-gonic/autotls"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5b3297bdcee778ff3bbdc99ab7c41e1c2677d22d"
+  version = "0.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:555fef7420c108d88754e41e02299fd10f67dc6602d643944611a4100132d3cf"
+  name = "github.com/gin-gonic/contrib"
+  packages = ["static"]
+  pruneopts = "UT"
+  revision = "54170a7b0b4b2f9219c79599b1b03830a5a7d68d"
 
 [[projects]]
   digest = "1:d5083934eb25e45d17f72ffa86cae3814f4a9d6c073c4f16b64147169b245606"
@@ -189,6 +170,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:81e02c4edb639c80559c0650f9401d3e2dcc3256d1fa215382bb7c83c1db9126"
+  name = "github.com/shopspring/decimal"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "cd690d0c9e2447b1ef2a129a6b7b49077da89b8e"
+  version = "1.1.0"
+
+[[projects]]
   digest = "1:d707dbc1330c0ed177d4642d6ae102d5e2c847ebd0eb84562d0dc4f024531cfc"
   name = "github.com/spf13/afero"
   packages = [
@@ -241,11 +230,22 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:48a949ee15f5f03524b792547822221b07f828dd26522b5e08688f25a10d14c1"
+  digest = "1:e3d2db9bc633f4635e6418caf0b0734c43821ecd59105d1798458c6ae4d227fd"
+  name = "golang.org/x/crypto"
+  packages = [
+    "acme",
+    "acme/autocert",
+  ]
+  pruneopts = "UT"
+  revision = "8d7daa0c54b357f3071e11eaef7efc4e19a417e2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:5004e851e5eccde563d17871cd9d11c82e2faa578b1a0de81dc74867ad3845a4"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "dcdaa6325bcb8d3c07805583fe12153f08a41e2b"
+  revision = "82a175fd1598e8a172e58ebdf5ed262bb29129e5"
 
 [[projects]]
   digest = "1:8029e9743749d4be5bc9f7d42ea1659471767860f0cdc34d37c3111bd308a295"
@@ -267,8 +267,8 @@
   name = "google.golang.org/appengine"
   packages = ["cloudsql"]
   pruneopts = "UT"
-  revision = "4a4468ece617fc8205e99368fa2200e9d1fad421"
-  version = "v1.3.0"
+  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
+  version = "v1.4.0"
 
 [[projects]]
   digest = "1:cbc72c4c4886a918d6ab4b95e347ffe259846260f99ebdd8a198c2331cf2b2e9"
@@ -290,12 +290,14 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/facebookgo/grace/gracehttp",
+    "github.com/gin-gonic/autotls",
+    "github.com/gin-gonic/contrib/static",
     "github.com/gin-gonic/gin",
     "github.com/go-sql-driver/mysql",
     "github.com/golang/glog",
     "github.com/gorilla/websocket",
     "github.com/jinzhu/gorm",
+    "github.com/shopspring/decimal",
     "github.com/spf13/viper",
   ]
   solver-name = "gps-cdcl"

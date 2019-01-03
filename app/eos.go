@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"dappswin/conf"
 	"dappswin/database"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os/exec"
 	"strings"
+	"sync"
+	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
+	"github.com/shopspring/decimal"
 )
 
 var eosConf *EosConf
@@ -28,6 +35,7 @@ func Init() {
 	}
 	go Huber.run()
 	checkcleosExists()
+	go Forever(getBalanceRoutine, time.Second*10)
 	//
 }
 
@@ -46,6 +54,7 @@ type EosConf struct {
 	EOS_CGG      uint64
 	WalletURL    string
 	WalletPW     string
+	TotalAmount  float64
 }
 
 func newEosConf() *EosConf {
@@ -65,6 +74,7 @@ func newEosConf() *EosConf {
 		WalletPW:     conf.C.GetString("eos.WalletPW"),
 		TokenSymbol:  conf.C.GetString("eos.TokenSymbol"),
 		TokenAccount: conf.C.GetString("eos.TokenAccount"),
+		TotalAmount:  conf.C.GetFloat64("eos.ICOTotalAmount"),
 	}
 }
 
@@ -118,4 +128,94 @@ func checkcleosExists() {
 	}
 	glog.Infof("cmd.Run() get balance of %s Out:%s", eosConf.ICOAccount, string(stdout.Bytes()))
 
+}
+
+// EosRegister 注册balance相关路由
+func EosRegister(router *gin.RouterGroup) {
+	router.POST("/chain/get_currency_balance", getCurrencyBalance)
+}
+
+type balancePost struct {
+	Code    string `json:"code" binding:"required,max=12"`
+	Account string `json:"account" binding:"required,len=12"`
+	Symbol  string `json:"symbol" binding:"required,len=3"`
+}
+
+var percentBalance json.Number = "0.00"
+var cacheLock sync.RWMutex
+
+func getPercent() json.Number {
+	cacheLock.RLock()
+	cached := percentBalance
+	cacheLock.RUnlock()
+
+	return cached
+}
+
+func setPercent(percent string) {
+	cacheLock.Lock()
+	defer cacheLock.Unlock()
+	percentBalance = json.Number(percent)
+}
+
+func getCurrencyBalance(c *gin.Context) {
+
+	post := balancePost{}
+	if err := c.ShouldBind(&post); err != nil {
+		c.JSON(400, gin.H{
+			"status":  -1,
+			"message": "post参数错误！",
+			"data":    nil,
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"status":  0,
+		"message": "",
+		"data": map[string]json.Number{
+			"result": getPercent(),
+		}})
+}
+
+func getBalanceRoutine() {
+	// ICOTotalAmount = 60000
+	url := eosConf.RPCURL + "/v1/chain/get_currency_balance"
+
+	payload := strings.NewReader("{\"code\":\"eosio.token\", \"account\":\"" + eosConf.ICOAccount + "\",\"symbol\":\"EOS\"}")
+
+	req, err := http.NewRequest("POST", url, payload)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		glog.Error(err)
+		return
+	}
+	defer res.Body.Close()
+
+	body, _ := ioutil.ReadAll(res.Body)
+	results := []string{}
+	if err := json.Unmarshal(body, &results); err != nil {
+		glog.Error("unmarshal error", err)
+		return
+	}
+	if len(results) != 1 {
+		glog.Warningf("%s balance is 0", eosConf.ICOAccount)
+		return
+	}
+	result := strings.Split(results[0], " ")
+	if len(result) != 2 {
+		glog.Error("result 格式有问题")
+		return
+	}
+	balance, _ := decimal.NewFromString(result[0])
+
+	percent := balance.Div(decimal.NewFromFloat(eosConf.TotalAmount)).Mul(decimal.NewFromFloat(100))
+	setPercent(percent.StringFixed(2))
 }

@@ -7,9 +7,9 @@ import (
 	"dappswin/database"
 	"dappswin/logs"
 	"dappswin/models"
-	"net/http"
 
-	"github.com/facebookgo/grace/gracehttp"
+	"github.com/gin-gonic/autotls"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/glog"
@@ -34,12 +34,16 @@ func main() {
 	api := r.Group("/api")
 	app.WSRegister(r.Group("/"))
 	app.UserRegister(api)
+	app.EosRegister(api)
 
-	r.Static("lottery", "./views")
+	r.Use(static.Serve("/", static.LocalFile("./views", true)))
 
-	server := &http.Server{
-		Addr:    ":" + conf.C.GetString("gin.port"),
-		Handler: r,
-	}
-	gracehttp.Serve(server)
+	// server := &http.Server{
+	// 	Addr:    ":" + conf.C.GetString("gin.port"),
+	// 	Handler: r,
+	// }
+	// gracehttp.Serve(server)
+	// TODO: enable grace + autotls
+	glog.Error(autotls.Run(r, "dappswin.io", "www.dappswin.io"))
+
 }
