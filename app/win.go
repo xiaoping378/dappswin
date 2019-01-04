@@ -55,11 +55,11 @@ func checkWinRoutine() {
 }
 
 // "0.1000 EOS"
-func calcBenefit(times int, betvalue int, quan string) string {
+func calcBenefit(times int, betTimes int, quan string) string {
 	s := strings.Split(quan, " ")
 	if s[1] == "EOS" {
 		f, _ := strconv.ParseFloat(s[0], 64)
-		s := fmt.Sprintf("%.4f", f*float64(times)/float64(betvalue))
+		s := fmt.Sprintf("%.4f", f*float64(times)/float64(betTimes))
 		return s
 	}
 	return ""

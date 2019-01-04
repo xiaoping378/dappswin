@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+var starCount = 6
+var lastStar = starCount - 1
+
 /*
 一个分号的情况有2种，
 1：b/s,o/e;453456
@@ -28,11 +31,11 @@ b/s/o/e    flag  times
 1           0    2
 1           1    12
 */
-func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
+func HandleBsOeAndOneStar(str []string, gameNum []byte) (int, int) {
 	var flag int8
 	var betnum int
 	for _, v := range str[1] { /*用户猜中数字了*/
-		if byte(v) == rewardnum[5] {
+		if byte(v) == gameNum[lastStar] {
 			flag = 1
 		}
 	}
@@ -41,21 +44,21 @@ func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
 		var V1Bit, V2Bit int8
 		switch str[0][0] {
 		case 'b':
-			if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
+			if gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9' {
 				V1Bit = 1
 			}
 		case 's':
-			if rewardnum[5] >= '0' && rewardnum[5] <= '4' {
+			if gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4' {
 				V1Bit = 1
 			}
 		}
 		switch str[0][2] {
 		case 'o':
-			if rewardnum[5]%2 > 0 {
+			if gameNum[lastStar]%2 > 0 {
 				V2Bit = 1
 			}
 		case 'e':
-			if rewardnum[5]%2 == 0 {
+			if gameNum[lastStar]%2 == 0 {
 				V2Bit = 1
 			}
 		}
@@ -83,19 +86,19 @@ func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
 		var bit int8
 		switch str[0][0] {
 		case 'b':
-			if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
+			if gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9' {
 				bit = 1
 			}
 		case 's':
-			if rewardnum[5] >= '0' && rewardnum[5] <= '5' {
+			if gameNum[lastStar] >= '0' && gameNum[lastStar] <= '5' {
 				bit = 1
 			}
 		case 'o':
-			if rewardnum[5]%2 > 0 {
+			if gameNum[lastStar]%2 > 0 {
 				bit = 1
 			}
 		case 'e':
-			if rewardnum[5]%2 == 0 {
+			if gameNum[lastStar]%2 == 0 {
 				bit = 1
 			}
 		}
@@ -141,48 +144,48 @@ s,e,[0~9]  split 返回包含2个元素的字符串数组
 [0~9][0~9][0~9][0~9][0~9]  split 返回i+1个元素的字符串数组，第一个元素str[0]为空，从str[1]处理
 -----------------------------------------
 */
-func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
+func HandleBetInfo(betinfo string, gameNum []byte) (int, int) {
 	str := strings.Split(betinfo, "[")
 	strlen := len(str)
 	switch strlen { /*以split 切分后返回的字符串数组长度做case 分支*/
 	case 1: /*handle : b/s/o/e/b,o/b,e/s,o/s,e*/
 		if len(str[0]) > 1 {
 			if str[0][0] == 'b' && str[0][2] == 'o' {
-				if (rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0 {
+				if (gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 > 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0) {
+				if ((gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 == 0) || ((gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 'b' && str[0][2] == 'e' {
-				if (rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0 {
+				if (gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 == 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0) {
+				if ((gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 > 0) || ((gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 == 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 's' && str[0][2] == 'o' {
-				if (rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0 {
+				if (gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 > 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0) {
+				if ((gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 == 0) || ((gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 's' && str[0][2] == 'e' {
-				if (rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0 {
+				if (gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 == 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0) {
+				if ((gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9') && gameNum[lastStar]%2 == 0) || ((gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4') && gameNum[lastStar]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
@@ -191,22 +194,22 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 		} else {
 			switch str[0][0] {
 			case 'b':
-				if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
+				if gameNum[lastStar] >= '5' && gameNum[lastStar] <= '9' {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 's':
-				if rewardnum[5] >= '0' && rewardnum[5] <= '4' {
+				if gameNum[lastStar] >= '0' && gameNum[lastStar] <= '4' {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 'o':
-				if rewardnum[5]%2 > 0 {
+				if gameNum[lastStar]%2 > 0 {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 'e':
-				if rewardnum[5]%2 == 0 {
+				if gameNum[lastStar]%2 == 0 {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
@@ -227,25 +230,25 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 		只有[0-9]*/
 		var times, betnum int
 		if len(str[0]) > 0 {
-			times, betnum = HandleBsOeAndOneStar(str, rewardnum)
+			times, betnum = HandleBsOeAndOneStar(str, gameNum)
 		} else {
-			times, betnum = HandleStarNum(str, rewardnum, 1)
+			times, betnum = HandleStarNum(str, gameNum, 1)
 		}
 		return times, betnum
 	case 3:
-		times, betnum := HandleStarNum(str, rewardnum, 2)
+		times, betnum := HandleStarNum(str, gameNum, 2)
 		return times, betnum
 	case 4:
-		times, betnum := HandleStarNum(str, rewardnum, 3)
+		times, betnum := HandleStarNum(str, gameNum, 3)
 		return times, betnum
 	case 5:
-		times, betnum := HandleStarNum(str, rewardnum, 4)
+		times, betnum := HandleStarNum(str, gameNum, 4)
 		return times, betnum
 	case 6:
-		times, betnum := HandleStarNum(str, rewardnum, 5)
+		times, betnum := HandleStarNum(str, gameNum, 5)
 		return times, betnum
 	case 7:
-		times, betnum := HandleStarNum(str, rewardnum, 6)
+		times, betnum := HandleStarNum(str, gameNum, 6)
 		return times, betnum
 	default:
 		fmt.Println("the betinfo is not valid")
@@ -256,14 +259,14 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 /*
 多星玩儿法；不涉及选择大小，单双
 */
-func HandleStarNum(str []string, rewardnum []byte, starnum int) (int, int) {
+func HandleStarNum(str []string, gameNum []byte, starnum int) (int, int) {
 	flag := make([]int, starnum)
 	var hitflag int
 	var betnum int
-	j := 5 - starnum
+	j := starCount - starnum
 	for i := 1; i <= starnum; i++ {
 		for _, v := range str[i] {
-			if byte(v) == rewardnum[j] {
+			if byte(v) == gameNum[j] {
 				flag[i-1] = 1
 			}
 		}
@@ -293,7 +296,7 @@ func main() {
 		return
 	}
 	betinfo := os.Args[1]
-	rewardnum := []byte(os.Args[2])
-	wintimes, betnum := HandleBetInfo(betinfo, rewardnum)
+	gameNum := []byte(os.Args[2])
+	wintimes, betnum := HandleBetInfo(betinfo, gameNum)
 	fmt.Println("you should send", wintimes, "times to user", "the bet number is:", betnum)
 }*/
