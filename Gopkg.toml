@@ -51,7 +51,3 @@
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  name = "github.com/gin-gonic/autotls"
-  version = "0.0.1"

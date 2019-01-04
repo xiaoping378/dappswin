@@ -7,8 +7,10 @@ import (
 	"dappswin/database"
 	"dappswin/logs"
 	"dappswin/models"
+	"net/http"
 
-	"github.com/gin-gonic/autotls"
+	"github.com/facebookgo/grace/gracehttp"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -31,19 +33,24 @@ func main() {
 	go app.ResolveRoutine()
 
 	r := gin.Default()
+
+	// TODO: 根据环境enable cors
+	r.Use(cors.Default())
+
 	api := r.Group("/api")
-	app.WSRegister(r.Group("/"))
+	app.WSRegister(api)
 	app.UserRegister(api)
 	app.EosRegister(api)
 
 	r.Use(static.Serve("/", static.LocalFile("./views", true)))
 
-	// server := &http.Server{
-	// 	Addr:    ":" + conf.C.GetString("gin.port"),
-	// 	Handler: r,
-	// }
-	// gracehttp.Serve(server)
+	server := &http.Server{
+		Addr:    ":" + conf.C.GetString("gin.port"),
+		Handler: r,
+	}
+	gracehttp.Serve(server)
 	// TODO: enable grace + autotls
-	glog.Error(autotls.Run(r, "dappswin.io", "www.dappswin.io"))
+	// replace by certbot on nginx
+	// glog.Error(autotls.Run(r, "dappswin.io", "www.dappswin.io"))
 
 }

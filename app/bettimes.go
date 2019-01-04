@@ -32,7 +32,7 @@ func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
 	var flag int8
 	var betnum int
 	for _, v := range str[1] { /*用户猜中数字了*/
-		if byte(v) == rewardnum[4] {
+		if byte(v) == rewardnum[5] {
 			flag = 1
 		}
 	}
@@ -41,21 +41,21 @@ func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
 		var V1Bit, V2Bit int8
 		switch str[0][0] {
 		case 'b':
-			if rewardnum[4] >= '5' && rewardnum[4] <= '9' {
+			if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
 				V1Bit = 1
 			}
 		case 's':
-			if rewardnum[4] >= '0' && rewardnum[4] <= '4' {
+			if rewardnum[5] >= '0' && rewardnum[5] <= '4' {
 				V1Bit = 1
 			}
 		}
 		switch str[0][2] {
 		case 'o':
-			if rewardnum[4]%2 > 0 {
+			if rewardnum[5]%2 > 0 {
 				V2Bit = 1
 			}
 		case 'e':
-			if rewardnum[4]%2 == 0 {
+			if rewardnum[5]%2 == 0 {
 				V2Bit = 1
 			}
 		}
@@ -83,19 +83,19 @@ func HandleBsOeAndOneStar(str []string, rewardnum []byte) (int, int) {
 		var bit int8
 		switch str[0][0] {
 		case 'b':
-			if rewardnum[4] >= '5' && rewardnum[4] <= '9' {
+			if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
 				bit = 1
 			}
 		case 's':
-			if rewardnum[4] >= '0' && rewardnum[4] <= '5' {
+			if rewardnum[5] >= '0' && rewardnum[5] <= '5' {
 				bit = 1
 			}
 		case 'o':
-			if rewardnum[4]%2 > 0 {
+			if rewardnum[5]%2 > 0 {
 				bit = 1
 			}
 		case 'e':
-			if rewardnum[4]%2 == 0 {
+			if rewardnum[5]%2 == 0 {
 				bit = 1
 			}
 		}
@@ -148,41 +148,41 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 	case 1: /*handle : b/s/o/e/b,o/b,e/s,o/s,e*/
 		if len(str[0]) > 1 {
 			if str[0][0] == 'b' && str[0][2] == 'o' {
-				if (rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 > 0 {
+				if (rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 == 0) || ((rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 > 0) {
+				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 'b' && str[0][2] == 'e' {
-				if (rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 == 0 {
+				if (rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 > 0) || ((rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 == 0) {
+				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 's' && str[0][2] == 'o' {
-				if (rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 > 0 {
+				if (rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 == 0) || ((rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 > 0) {
+				if ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
 			}
 			if str[0][0] == 's' && str[0][2] == 'e' {
-				if (rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 == 0 {
+				if (rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 == 0 {
 					fmt.Println("the reward num is: 4")
 					return 4, 2
 				}
-				if ((rewardnum[4] >= '5' && rewardnum[4] <= '9') && rewardnum[4]%2 == 0) || ((rewardnum[4] >= '0' && rewardnum[4] <= '4') && rewardnum[4]%2 > 0) {
+				if ((rewardnum[5] >= '5' && rewardnum[5] <= '9') && rewardnum[5]%2 == 0) || ((rewardnum[5] >= '0' && rewardnum[5] <= '4') && rewardnum[5]%2 > 0) {
 					fmt.Println("the reward num is: 2")
 					return 2, 2
 				}
@@ -191,22 +191,22 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 		} else {
 			switch str[0][0] {
 			case 'b':
-				if rewardnum[4] >= '5' && rewardnum[4] <= '9' {
+				if rewardnum[5] >= '5' && rewardnum[5] <= '9' {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 's':
-				if rewardnum[4] >= '0' && rewardnum[4] <= '4' {
+				if rewardnum[5] >= '0' && rewardnum[5] <= '4' {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 'o':
-				if rewardnum[4]%2 > 0 {
+				if rewardnum[5]%2 > 0 {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
 			case 'e':
-				if rewardnum[4]%2 == 0 {
+				if rewardnum[5]%2 == 0 {
 					fmt.Println("the reward num is: 2")
 					return 2, 1
 				}
@@ -243,6 +243,9 @@ func HandleBetInfo(betinfo string, rewardnum []byte) (int, int) {
 		return times, betnum
 	case 6:
 		times, betnum := HandleStarNum(str, rewardnum, 5)
+		return times, betnum
+	case 7:
+		times, betnum := HandleStarNum(str, rewardnum, 6)
 		return times, betnum
 	default:
 		fmt.Println("the betinfo is not valid")

@@ -1,0 +1,112 @@
+##
+# You should look at the following URL's in order to grasp a solid understanding
+# of Nginx configuration files in order to fully unleash the power of Nginx.
+# https://www.nginx.com/resources/wiki/start/
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/config_pitfalls/
+# https://wiki.debian.org/Nginx/DirectoryStructure
+#
+# In most cases, administrators will remove this file from sites-enabled/ and
+# leave it as reference inside of sites-available where it will continue to be
+# updated by the nginx packaging team.
+#
+# This file will automatically load configuration files provided by other
+# applications, such as Drupal or Wordpress. These applications will be made
+# available underneath a path with that package name, such as /drupal8.
+#
+# Please see /usr/share/doc/nginx-doc/examples/ for more detailed examples.
+##
+
+# Default server configuration
+
+server {
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	root /var/www/html;
+
+	# Add index.php to the list if you are using PHP
+	index index.html index.htm index.nginx-debian.html;
+
+	server_name _;
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+	}
+
+}
+
+server {
+	root /var/www/html;
+
+	# Add index.php to the list if you are using PHP
+	index index.html index.htm index.nginx-debian.html;
+    
+	server_name dappswin.io www.dappswin.io; # managed by Certbot
+
+
+	location / {
+		# First attempt to serve request as file, then
+		# as directory, then fall back to displaying a 404.
+		try_files $uri $uri/ =404;
+	}
+        
+	location ~* \.(jpg|jpeg|png|gif|ico)$ {
+		expires 30d;
+	}
+
+	location ~* \.(css|js)$ {
+		expires 7d;
+	}
+	
+	location /api/ {
+		proxy_pass http://localhost:8080;
+		proxy_redirect off;
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header REMOTE-HOST $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_connect_timeout 300;
+		proxy_send_timeout 300;
+		proxy_read_timeout 600;
+		proxy_buffer_size 256k;
+		proxy_buffers 4 256k;
+		proxy_busy_buffers_size 256k;
+		proxy_temp_file_write_size 256k;
+		proxy_next_upstream error timeout invalid_header http_500 http_502 http_503 http_504 http_404;
+		proxy_max_temp_file_size 128m;
+	}
+
+	location /api/ws {
+		proxy_pass http://localhost:8080;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection $connection_upgrade;
+	}
+
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/dappswin.io/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/dappswin.io/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    if ($host = www.dappswin.io) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    if ($host = dappswin.io) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+	listen 80 ;
+	listen [::]:80;
+    server_name dappswin.io www.dappswin.io;
+    return 404; # managed by Certbot
+}

@@ -162,7 +162,7 @@ func getCurrencyBalance(c *gin.Context) {
 
 	post := balancePost{}
 	if err := c.ShouldBind(&post); err != nil {
-		c.JSON(400, gin.H{
+		c.JSON(200, gin.H{
 			"status":  -1,
 			"message": "post参数错误！",
 			"data":    nil,
