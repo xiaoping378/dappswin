@@ -17,7 +17,7 @@ func checkWinRoutine() {
 	for {
 		select {
 		case game := <-winchan:
-			glog.Infof("开奖啦，激动人心的时刻到来了。。。%v", game)
+			glog.Infof("开奖啦，激动人心的时刻到来了。。。%#v", game)
 			txs, err := models.GetTxsInGame(game.GameMintue, pending)
 			if err != nil {
 				glog.Error("getTxsInGame error :", err)
@@ -32,7 +32,7 @@ func checkWinRoutine() {
 				if winTimes > 0 {
 					winValue := calcBenefit(winTimes, betnum, tx.Quantity)
 					// TODO call cleos unlock transfer EOS and lock, if OK update SQL.
-					glog.Infof("开始发放奖励, to %s,  %v", tx.From, winValue)
+					glog.Infof("开始发放奖励, to %s,  %s", tx.From, winValue)
 
 					// {"bookid":0,"status":0,"to":"kunoichi3141","amount":"0.3920 EOS","memo":"win|25736640:50090:e"}
 					memo := "win|" + fmt.Sprint(game.Id) + ":" + game.Result + ":" + betInfo

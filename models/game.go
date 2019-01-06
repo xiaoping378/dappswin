@@ -2,7 +2,7 @@ package models
 
 type Game struct {
 	Id        int64  `gorm:"PRIMARY_KEY"`
-	Result    string `gorm:"size:5"`
+	Result    string `gorm:"size:6"`
 	BlockNum  uint32
 	TimeStamp int64
 	// 游戏属于的哪个分钟段的

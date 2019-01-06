@@ -51,7 +51,7 @@ type EosConf struct {
 	ICOStartTime int64
 	TokenSymbol  string
 	TokenAccount string
-	EOS_CGG      uint64
+	EOS_CGG      float64
 	WalletURL    string
 	WalletPW     string
 	TotalAmount  float64
@@ -69,7 +69,7 @@ func newEosConf() *EosConf {
 		ICOAccount:   conf.C.GetString("eos.ICOAccount"),
 		EnableICO:    conf.C.GetBool("eos.EnableICO"),
 		ICOStartTime: conf.C.GetInt64("eos.ICOStartTime"),
-		EOS_CGG:      uint64(conf.C.GetInt("eos.EOS_CGG")),
+		EOS_CGG:      conf.C.GetFloat64("eos.EOS_CGG"),
 		WalletURL:    conf.C.GetString("eos.WalletURL"),
 		WalletPW:     conf.C.GetString("eos.WalletPW"),
 		TokenSymbol:  conf.C.GetString("eos.TokenSymbol"),

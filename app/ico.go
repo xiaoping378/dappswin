@@ -3,6 +3,7 @@ package app
 import (
 	"dappswin/models"
 	"fmt"
+	"sort"
 
 	"github.com/golang/glog"
 )
@@ -14,23 +15,34 @@ const (
 )
 
 // ICORules ico等级， 100EOS以下 多奖励0.5%
-var ICORules = map[uint64]float64{
-	100 * 1e4:  0.005,
-	500 * 1e4:  0.01,
-	1000 * 1e4: 0.015,
-	1500 * 1e4: 0.02,
-	2000 * 1e4: 0.025,
+var ICORules = map[int]float64{
+	100 * 1e4:   0,
+	500 * 1e4:   50,
+	1000 * 1e4:  100,
+	1500 * 1e4:  150,
+	2000 * 1e4:  200,
+	20000 * 1e4: 250,
 }
 
-func getRefund(value uint64) float64 {
+func getRefund(time int64, value float64) float64 {
 
-	for amount, reward := range ICORules {
-		if value < amount {
-			return float64(value*eosConf.EOS_CGG) * (1 + reward)
+	if time-eosConf.ICOStartTime > oneDayMills {
+		return value * eosConf.EOS_CGG
+	}
+
+	sortedKeys := []int{}
+	for k, _ := range ICORules {
+		sortedKeys = append(sortedKeys, k)
+	}
+	sort.Ints(sortedKeys)
+	for _, k := range sortedKeys {
+		if value < float64(k) {
+			return value*eosConf.EOS_CGG*ICORules[k]/1e4 + value*eosConf.EOS_CGG
 		}
 	}
+
 	// here return the max reward
-	return float64(value*eosConf.EOS_CGG) * (1 + 0.025)
+	return value*eosConf.EOS_CGG*250/1e4 + value*eosConf.EOS_CGG
 }
 
 var icochan = make(chan *models.ICO, 4096)
@@ -41,12 +53,9 @@ func checkICORoutine() {
 		select {
 		case ico := <-icochan:
 			glog.V(7).Infof("有人投ICO募资了，who=>%s 额度是%s EOS", ico.Account, fmt.Sprintf("%.4f", float64(ico.Amount)/1e4))
-			var amount float64
-			if ico.TimeMills-eosConf.ICOStartTime <= oneDayMills {
-				amount = getRefund(ico.Amount) / 1e4
-			}
-			amount = float64(ico.Amount*eosConf.EOS_CGG) / 1e4
-			quantity := fmt.Sprintf("%.4f", amount) + " " + eosConf.TokenSymbol
+
+			amount := getRefund(ico.TimeMills, float64(ico.Amount)) / 1e4
+			quantity := fmt.Sprintf("%.4f ", amount) + eosConf.TokenSymbol
 			glog.Infof("奖励购买的代币===========> to %s, quantity: %s", ico.Account, quantity)
 			if err := sendTokens(ico.Account, quantity); err == nil {
 				if err := db.Model(ico).Update("status", handled).Error; err != nil {

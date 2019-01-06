@@ -14,7 +14,7 @@ var isGameDone bool = true
 var gameResult string
 
 // 奖励是5位数字
-const gameCodeLen int = 5
+const gameCodeLen int = 6
 
 var gameChan = make(chan *models.Block, 4096)
 

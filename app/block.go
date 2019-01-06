@@ -73,7 +73,7 @@ func resolveBlock(num uint32) {
 	blk := models.Block{blkRsp.Hash, blkRsp.Num, timemills}
 
 	// 游戏轮数需要统计
-	// glog.Info("Pushing Game needed block... %v", blk)
+	glog.Infof("Pushing Game needed block... %#v", blk)
 	gameChan <- &blk
 
 	// 广播区块信息
