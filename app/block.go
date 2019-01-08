@@ -49,7 +49,7 @@ func getBlockByNum(num uint32) (*BlockRsp, error) {
 		return nil, err
 	}
 	blk := &BlockRsp{}
-	if err = json.Unmarshal(buf, &blk); nil != err {
+	if err = json.Unmarshal(buf, blk); nil != err {
 		glog.Errorf("getBlockByNum - json.Unmarshall failed : %v", err)
 		return nil, err
 	}

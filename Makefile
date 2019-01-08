@@ -1,4 +1,4 @@
-.PHONY: build  package start-docker run deps
+.PHONY: build  package start-docker run deps test pack
 DIST_PATH = dist
 RELEASE_PATH = $(DIST_PATH)/release
 BUILD_DATE = $(shell date -u)
@@ -14,19 +14,13 @@ TESTFLAGS ?= -short
 PACKAGESLISTS_COMMA=$(shell echo $(PACKAGESLISTS) | tr ' ' ',')
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-build:
+test:
+	@echo Testing ...
+	$(GO) test ./...
+
+build: test
 	@echo Build Linux amd64
 	env GOOS=linux GOARCH=amd64 $(GO) build -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./dappswin.go
-
-package:
-	@echo Packaging dappswin
-	rm -rf $(DIST_PATH)
-	mkdir -p $(RELEASE_PATH)/bin
-	mkdir -p $(RELEASE_PATH)/config
-	cp $(GOPATH)/bin/dappswin $(RELEASE_PATH)/bin
-	cp conf/*.json $(RELEASE_PATH)/config
-	cp ./*.toml $(RELEASE_PATH)/
-	tar -C $(DIST_PATH) -czf $(RELEASE_PATH)-$(BUILDER_GOOS_GOARCH).tar.gz release
 
 deps:
 	@echo make deps ... 
@@ -38,8 +32,9 @@ run:
 	@echo Running dappswin
 	fresh
 	
-
-
+pack: test build
+	@echo tar builded
+	tar zcvf dappswin.tar.gz dappswin dappswin.toml scripts install.sh
 
 govet: ## Runs govet against all packages.
 	@echo Running GOVET
@@ -61,39 +56,4 @@ gofmt: ## Runs gofmt against all packages.
 		fi; \
 	done
 	@echo "gofmt success"; \
-
-test: clean-docker start-docker test-server
-
-test-server:
-	docker run --rm  --name ginkgo-test --network my-net -v $(GOPATH)/src/dappswin:/go/src/dappswin  golang:latest /bin/sh -c  "/go/src/dappswin/ginkgo -r -trace -cover  -coverprofile=coverprofile.txt -outputdir=/go/src/dappswin   /go/src/dappswin"
-
-start-docker: ## Starts the docker containers for local development.
-	@echo Starting docker containers
-
-	@if [ $(shell docker ps -a | grep -ci critic-mysql) -eq 0 ]; then \
-		echo starting dappswin-mysql; \
-		docker run --network my-net --name dappswin-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=123456 \
-		-e MYSQL_USER=dappswin -e MYSQL_PASSWORD=123456 -e MYSQL_DATABASE=dappswin_test -d mysql:5.7 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci critic-mysql) -eq 0 ]; then \
-		echo restarting critic-mysql; \
-		docker start critic-mysql > /dev/null; \
-	fi
-
-stop-docker: ## Stops the docker containers for local development.
-	@echo Stopping docker containers
-
-	@if [ $(shell docker ps -a | grep -ci dappswin-mysql) -eq 1 ]; then \
-		echo stopping critic-mysql; \
-		docker stop critic-mysql > /dev/null; \
-	fi
-
-clean-docker: ## Deletes the docker containers for local development.
-	@echo Removing docker containers
-
-	@if [ $(shell docker ps -a | grep -ci dappswin-mysql) -eq 1 ]; then \
-		echo removing critic-mysql; \
-		docker stop critic-mysql > /dev/null; \
-		docker rm -v critic-mysql > /dev/null; \
-	fi
-
 

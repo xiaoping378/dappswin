@@ -1,6 +1,7 @@
 [gin]
 port = 8080
 runmode = "dev"
+# runmode = "pro"
 EnableAdmin = false
 
 [eos]
@@ -11,7 +12,7 @@ WalletPW = "PW5KEVCDpGccbv7cpXkoBD5eqESYtKiu4npo5ZmdJg2DpbXR9YMx6"
 GameAccount = "eosplaybrand"
 ICOAccount = "xiaopingeos2"
 TokenAccount = "xxptoken1234"
-FromBlkNum = 7351310
+FromBlkNum = 7529733
 
 # RPCURL = "https://proxy.eosnode.tools"
 # WalletURL = "unix:///root/eosio-wallet/keosd.sock"
@@ -19,7 +20,7 @@ FromBlkNum = 7351310
 # GameAccount = "cryptogame12"
 # TokenAccount = "cryptogame12"
 # ICOAccount = "cryptogame11"
-# FromBlkNum = 35942515
+# FromBlkNum = 36118039
 
 # 间隔单位（ms）
 FetchIdleDur = 500

@@ -5,3 +5,4 @@ nodeos.log
 vendor/
 tmp/
 build/
+*.tar.gz

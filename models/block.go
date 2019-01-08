@@ -4,6 +4,7 @@ import (
 	"dappswin/database"
 	"encoding/json"
 
+	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
 )
 
@@ -27,7 +28,8 @@ func (b Block) Message() []byte {
 	m := Message{}
 	m.Type = 0
 	// same as func (m *Message) HandleTimeStamp()
-	b.Time = b.Time*2/1000 - 946684800
+	// b.Time = b.Time*2/1000 - 946684800
+	b.Time = b.Time
 	m.Data = b
 
 	ms := []Message{}
@@ -37,6 +39,10 @@ func (b Block) Message() []byte {
 }
 
 func (b *Block) LastLetter() string {
+	if len(b.Hash) != 64 {
+		glog.Errorf("Error on block ！！！！ %#v", b)
+		return ""
+	}
 	return b.Hash[len(b.Hash)-1:]
 }
 
@@ -73,5 +79,6 @@ type Message struct {
 //
 // (2142155917+946684800)/2*1000 == // 1544420358500
 func (m *Message) HandleTimeStamp() {
-	m.Time = m.Time*2/1000 - 946684800
+	// m.Time = m.Time*2/1000 - 946684800
+
 }

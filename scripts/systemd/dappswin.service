@@ -1,0 +1,12 @@
+[Unit]
+Description=dappswin go server
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=30s
+ExecStart=/usr/local/sbin/dappswin
+
+[Install]
+WantedBy=default.target

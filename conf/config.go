@@ -12,7 +12,7 @@ var C = viper.New()
 
 func Init() {
 
-	C.AddConfigPath("/etc/dappswin/dappswin")
+	C.AddConfigPath("/etc/dappswin/")
 	C.AddConfigPath("$HOME/.dappswin")
 	C.AddConfigPath(".")
 	C.SetConfigName("dappswin")
