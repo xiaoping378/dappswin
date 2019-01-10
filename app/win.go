@@ -3,8 +3,6 @@ package app
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"dappswin/models"
 
@@ -27,20 +25,20 @@ func checkWinRoutine() {
 
 			for i, tx := range txs {
 				_, betInfo, _ := models.ResolveMemo(tx.Memo)
-				glog.Infof("betInfo is %s, %s", betInfo, game.Result)
+				glog.Infof("betInfo is %s, %s, %d", betInfo, game.Result, tx.Amount)
 				winTimes, betnum := HandleBetInfo(betInfo, []byte(game.Result))
 				if winTimes > 0 {
-					winValue := calcBenefit(winTimes, betnum, tx.Quantity)
+					winValue := calcBenefit(winTimes, betnum, tx.Amount)
 					// TODO call cleos unlock transfer EOS and lock, if OK update SQL.
 					glog.Infof("开始发放奖励, to %s,  %s", tx.From, winValue)
 
 					// {"bookid":0,"status":0,"to":"kunoichi3141","amount":"0.3920 EOS","memo":"win|25736640:50090:e"}
 					memo := "win|" + fmt.Sprint(game.Id) + ":" + game.Result + ":" + betInfo
-					reward := &models.Reward{Amount: winValue + " EOS", ID: i, Status: 0, To: tx.From, Memo: memo}
+					reward := &models.Reward{Amount: winValue + " " + coinNames[tx.CoinID], ID: i, Status: 0, To: tx.From, Memo: memo}
 
 					//构造赢家消息
-					msg = &models.Message{gameType, game.BlockNum, tx.TxID, tx.Time, reward}
-					msg.HandleTimeStamp()
+					msg = &models.Message{gameType, game.BlockNum, tx.TxID, tx.TimeMills, reward}
+					// msg.HandleTimeStamp()
 					msgs = append(msgs, msg)
 				}
 				tx.Status = handled
@@ -54,13 +52,8 @@ func checkWinRoutine() {
 	}
 }
 
-// "0.1000 EOS"
-func calcBenefit(times int, betTimes int, quan string) string {
-	s := strings.Split(quan, " ")
-	if s[1] == "EOS" {
-		f, _ := strconv.ParseFloat(s[0], 64)
-		s := fmt.Sprintf("%.4f", f*float64(times)/float64(betTimes))
-		return s
-	}
-	return ""
+// "0.1000"
+func calcBenefit(times int, betTimes int, amount uint64) string {
+	s := fmt.Sprintf("%.4f", float64(amount)/1e4/float64(betTimes)*float64(times)*98/100)
+	return s
 }

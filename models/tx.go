@@ -1,8 +1,11 @@
 package models
 
 import (
+	"encoding/json"
 	"strconv"
 	"strings"
+
+	"github.com/golang/glog"
 )
 
 // TX lottery action.
@@ -50,6 +53,26 @@ type TransactionResp struct {
 	Trx    interface{} `json:"trx"`
 }
 
+func (tx TransactionResp) GetActions() ([]Action, string) {
+	actions := []Action{}
+	if tx.Status != "executed" {
+		return nil, ""
+	}
+	// tx.Trx is string
+	if _, ok := tx.Trx.(string); ok {
+		return nil, ""
+	}
+	// tx.Trx is map[string]interface {}
+	trxBuf, _ := json.Marshal(tx.Trx)
+	trxS := &TRX{}
+	if err := json.Unmarshal(trxBuf, trxS); err != nil {
+		glog.V(7).Infof("tx.Trx is not supported %v", err)
+		return nil, ""
+	}
+	actions = trxS.TX.Actions
+	return actions, trxS.ID
+}
+
 type TRX struct {
 	ID string      `json:"id"`
 	TX Transaction `json:"transaction"`
@@ -59,6 +82,25 @@ type Action struct {
 	Account string `json:"account"`
 	Name    string `json:"name"`
 	Data    TX     `json:"data"`
+}
+
+func (a Action) Coin() string {
+	switch a.Account {
+	case "eosio.token":
+		return "EOS"
+	case "cryptogame12":
+		return "CGG"
+	default:
+		// glog.Warningf("not supported coin %s", a.Account)
+		return ""
+	}
+}
+
+func (a Action) IsTransfer() bool {
+	if a.Name == "transfer" {
+		return true
+	}
+	return false
 }
 
 type Transaction struct {
@@ -72,11 +114,12 @@ type Tx struct {
 	BlockNum uint32
 	From     string `json:"from"`
 	To       string `json:"to"`
-	Quantity string `json:"quantity"`
+	Amount   uint64 `json:"amount"`
+	CoinID   int    `json:"coinID"`
 	Memo     string `json:"memo"`
 	// 判断是否待处理
-	Status int8 `gorm:"index:status"`
-	Time   int64
+	Status    int8 `gorm:"index:status"`
+	TimeMills int64
 	// 提取属于哪一期游戏
 	TimeMintue int64 `gorm:"index:timemintue"`
 }

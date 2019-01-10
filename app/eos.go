@@ -26,7 +26,7 @@ var apiEndpoint []string
 // InitEos 启动Eos Resolver
 func Init() {
 	eosConf = newEosConf()
-	db = database.Db
+	db = database.Db.Debug()
 	go gameRoutine()
 	go resloveTXRoutine()
 	go checkWinRoutine()
@@ -120,6 +120,7 @@ func checkcleosExists() {
 	}
 
 	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "get", "currency", "balance", "eosio.token", eosConf.ICOAccount)
+	glog.Info(cmd.Args)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

@@ -2,6 +2,8 @@ package app
 
 import (
 	"encoding/json"
+	"strconv"
+	"strings"
 
 	"dappswin/models"
 
@@ -21,68 +23,72 @@ func resloveTXRoutine() {
 				glog.Error("txs asscert failed!")
 				break
 			}
-			if len(txs) == 0 {
-				glog.V(7).Infof("空块 %d", txsMsg.BlockNum)
-				break
-			}
-			txmsg := []*models.Message{}
 
+			txsmsg := []*models.Message{}
 			for _, tx := range txs {
-				if tx.Status != "executed" {
-					continue
-				}
-				msg := &models.Message{}
-				// tx.Trx is string
-				if _, ok := tx.Trx.(string); ok {
-					continue
-				}
-				// tx.Trx is map[string]interface {}
-				trxBuf, _ := json.Marshal(tx.Trx)
-				trxS := &models.TRX{}
-				if err := json.Unmarshal(trxBuf, trxS); err != nil {
-					glog.V(7).Infof("tx.Trx is not supported, ID %v, blockNum is %d", err, txsMsg.BlockNum)
+				// glog.Infof("%#v", tx)
+				actions, hash := tx.GetActions()
+				if actions == nil {
 					continue
 				}
 
-				for _, action := range trxS.TX.Actions {
-					if action.Account == "eosio.token" && action.Name == "transfer" {
-						if eosConf.EnableICO && action.Data.To == eosConf.ICOAccount {
-							t := models.TX{Quantity: action.Data.Quantity}
-							ico := &models.ICO{Hash: trxS.ID, Account: action.Data.From, Amount: t.Amount(), Status: pending, TimeMills: txsMsg.Time}
-							models.AddIcoRecord(ico)
-							icochan <- ico
-						}
-						if action.Data.To != eosConf.GameAccount {
-							continue
-						}
-						if game, _, _ := models.ResolveMemo(action.Data.Memo); game != "lottery" {
-							continue
-						}
-						msg.BlockNum = txsMsg.BlockNum
-						msg.Time = txsMsg.Time
-						msg.Type = txsMsg.Type
-						msg.Hash = trxS.ID
-						msg.Data = action.Data
-						msg.HandleTimeStamp()
-
-						txdb := &models.Tx{
-							TxID: trxS.ID, BlockNum: txsMsg.BlockNum,
-							From: action.Data.From, To: action.Data.To, Quantity: action.Data.Quantity, Memo: action.Data.Memo,
-							Status: pending, Time: txsMsg.Time, TimeMintue: txsMsg.Time / 1000 / 60}
-
-						go models.AddTx(txdb)
-
-						// 更新用户投注信息
-						models.UpdateUserInfo(msg)
-
-						txmsg = append(txmsg, msg)
+				glog.V(7).Infof("%#v", actions)
+				for _, action := range actions {
+					if !action.IsTransfer() {
+						continue
+					}
+					coinName := action.Coin()
+					if coinName == "" {
+						continue
+					}
+					if msg := handleTX(coinName, hash, action, txsMsg); msg != nil {
+						txsmsg = append(txsmsg, msg)
 					}
 				}
 			}
-			if len(txmsg) != 0 {
-				buf, _ := json.Marshal(txmsg)
+			if len(txsmsg) != 0 {
+				buf, _ := json.Marshal(txsmsg)
 				Huber.broadcast <- buf
 			}
 		}
 	}
+}
+
+func handleTX(coin string, hash string, action models.Action, txsMsg *models.Message) *models.Message {
+	msg := models.Message{}
+
+	if eosConf.EnableICO && coin == "EOS" && action.Data.To == eosConf.ICOAccount {
+		t := models.TX{Quantity: action.Data.Quantity}
+		ico := &models.ICO{Hash: hash, Account: action.Data.From, Amount: t.Amount(), Status: pending, TimeMills: txsMsg.TimeMills}
+		models.AddIcoRecord(ico)
+		icochan <- ico
+		return nil
+	}
+	if action.Data.To != eosConf.GameAccount {
+		return nil
+	}
+
+	game, _, _ := models.ResolveMemo(action.Data.Memo)
+
+	msg.BlockNum = txsMsg.BlockNum
+	msg.TimeMills = txsMsg.TimeMills
+	t, ok := wsTypes[game+coin+"Buy"]
+	if !ok {
+		return nil
+	}
+	msg.Type = t
+	msg.Hash = hash
+	msg.Data = action.Data
+
+	str := strings.Split(action.Data.Quantity, " ")
+	amount, _ := strconv.ParseFloat(str[0], 64)
+	glog.Infof("Coming amount is %s, %s,  %s, %f, timemills: %d , %d期游戏", action.Data.Quantity, str[0], action.Data.From, amount, txsMsg.TimeMills, txsMsg.TimeMills/1000/60)
+
+	txdb := &models.Tx{
+		TxID: hash, BlockNum: txsMsg.BlockNum,
+		From: action.Data.From, To: action.Data.To, Amount: uint64(amount * 1e4), CoinID: coinIDs[coin], Memo: action.Data.Memo,
+		Status: pending, TimeMills: txsMsg.TimeMills, TimeMintue: txsMsg.TimeMills / 1000 / 60}
+
+	go models.AddTx(txdb)
+	return &msg
 }

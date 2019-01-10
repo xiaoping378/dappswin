@@ -68,11 +68,11 @@ type Reward struct {
 
 // Message ws send this.
 type Message struct {
-	Type     int         `json:"type"`
-	BlockNum uint32      `json:"blocknum,omitempty"`
-	Hash     string      `json:"id,omitempty"`
-	Time     int64       `json:"time,omitempty"`
-	Data     interface{} `json:"data"`
+	Type      int         `json:"type"`
+	BlockNum  uint32      `json:"blocknum,omitempty"`
+	Hash      string      `json:"id,omitempty"`
+	TimeMills int64       `json:"time,omitempty"`
+	Data      interface{} `json:"data"`
 }
 
 // HandleTimeStamp 前端为了显示0.5所做的特殊处理

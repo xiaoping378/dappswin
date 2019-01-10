@@ -28,8 +28,8 @@ func gameRoutine() {
 				gameResult += block.LastLetter()
 				glog.Infof("gameResult....: %s, len is %d, %d, BlockTime is %d", gameResult, len(gameResult), block.Num, block.Time)
 				if len(gameResult) == gameCodeLen {
+					// 记录成上一分钟的值，数据库好匹配
 					gameorm := &models.Game{Result: gameResult, BlockNum: block.Num, TimeStamp: tm, GameMintue: int64(tm/60) - 1}
-					// TODO GameID 应该由时间算出来
 					if err := models.AddGame(gameorm); err != nil {
 						glog.Errorf("insert game error %v", err)
 					}

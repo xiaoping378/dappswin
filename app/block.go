@@ -50,7 +50,7 @@ func getBlockByNum(num uint32) (*BlockRsp, error) {
 	}
 	blk := &BlockRsp{}
 	if err = json.Unmarshal(buf, blk); nil != err {
-		glog.Errorf("getBlockByNum - json.Unmarshall failed : %v", err)
+		glog.Errorf("getBlockByNum - json.Unmarshall failed : %v, %s", err, string(buf))
 		return nil, err
 	}
 
@@ -63,17 +63,23 @@ func resolveBlock(num uint32) {
 	if err != nil {
 		// TODO, notify chan to recheck it.
 		glog.Errorf("resolve block num %d : err %v", num, err)
+		blkRsp, err = getBlockByNum(num)
+		if err != nil {
+			return
+		}
 	}
 
 	tm, _ := time.Parse("2006-01-02T15:04:05.999999999", blkRsp.Time)
 	timemills := tm.UnixNano() / 1e6
-	// glog.Info("timemills is %d, %s", timemills, blkRsp.Time)
-	txschan <- &models.Message{Type: txType, BlockNum: num, Hash: "", Time: timemills, Data: blkRsp.Txs}
+	glog.V(7).Infof("timemills is %#v", blkRsp.Txs)
+	if len(blkRsp.Txs) != 0 {
+		txschan <- &models.Message{Type: txType, BlockNum: num, Hash: "", TimeMills: timemills, Data: blkRsp.Txs}
+	}
 
 	blk := models.Block{blkRsp.Hash, blkRsp.Num, timemills}
 
 	// 游戏轮数需要统计
-	glog.Infof("Pushing Game needed block... %#v", blk)
+	glog.V(7).Infof("Pushing Game needed block... %#v", blk)
 	gameChan <- &blk
 
 	// 广播区块信息
@@ -87,7 +93,11 @@ func resolveBlock(num uint32) {
 
 func getHeadNum() uint32 {
 	url := eosConf.RPCURL + "/v1/chain/get_info"
-	resp, err := http.Post(url, "application/json", nil)
+	timeout := time.Duration(3 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Post(url, "application/json", nil)
 	if nil != err {
 		glog.Errorf("getBlockByNum - http.Post(%s) failed : %v", url, err)
 		return 0
@@ -124,12 +134,13 @@ func ResolveRoutine() {
 	} else {
 		cachedHeadNum = eosConf.FromBlkNum
 	}
-
+	// cachedHeadNum = 36497629
 	for {
 		select {
 		case <-ticker.C:
 			ticker.Stop()
 			head := getHeadNum()
+			// head = 36497630
 			glog.Infof("head num is %d, cached is %d", head, cachedHeadNum)
 
 			for i := cachedHeadNum + 1; i <= head; i++ {

@@ -6,13 +6,14 @@ EnableAdmin = false
 
 [eos]
 # TODO 节点池
-RPCURL = "https://jungle2.cryptolions.io"
+RPCURL = "https://proxy.eosnode.tools"
 WalletURL = "unix:///home/xxp/eosio-wallet/keosd.sock"
 WalletPW = "PW5KEVCDpGccbv7cpXkoBD5eqESYtKiu4npo5ZmdJg2DpbXR9YMx6"
 GameAccount = "eosplaybrand"
-ICOAccount = "xiaopingeos2"
+ICOAccount = "eosxiaoping1"
 TokenAccount = "xxptoken1234"
-FromBlkNum = 7529733
+# FromBlkNum = 7529733
+FromBlkNum = 36499800
 
 # RPCURL = "https://proxy.eosnode.tools"
 # WalletURL = "unix:///root/eosio-wallet/keosd.sock"

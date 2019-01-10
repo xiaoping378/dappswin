@@ -16,7 +16,7 @@ downloadAndInstallEos()
 type cleos >/dev/null 2>&1 || downloadAndInstallEos
 
 rm /usr/local/sbin/dappswin && cp -f dappswin /usr/local/sbin/dappswin
-mkdir -p /etc/dappswin && cp dappswin.toml /etc/dappswin/
+mkdir -p /etc/dappswin && [ -f  /etc/dappswin/dappswin.toml ] || cp dappswin.toml /etc/dappswin/
 
 rm /etc/systemd/system/dappswin.service && cp -f ./scripts/systemd/dappswin.service /etc/systemd/system/dappswin.service
 
