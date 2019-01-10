@@ -40,7 +40,7 @@ func gameRoutine() {
 					winchan <- gameorm
 
 					r, _ := strconv.ParseInt(gameResult, 10, 32)
-					gamews := &GameWS{gameID, r}
+					gamews := &GameWS{gameID, r, getGameContent(gameResult)}
 					pushGameMessage(block, gamews)
 					// TODO push to win.go
 					isGameDone = true
@@ -77,8 +77,26 @@ func isNumber(s string) bool {
 }
 
 type GameWS struct {
-	ID     int64 `json:"gameid"`
-	Result int64 `json:"result"`
+	ID      int64  `json:"gameid"`
+	Result  int64  `json:"result"`
+	Content string `json:content`
+}
+
+func getGameContent(result string) string {
+	var content string
+	if result[lastStar] >= '0' && result[lastStar] <= '4' {
+		content = "s|"
+	} else {
+		content = "b|"
+	}
+
+	if result[lastStar]%2 == 0 {
+		content += "e"
+	} else {
+		content += "o"
+	}
+
+	return content
 }
 
 type gamePagePost struct {
