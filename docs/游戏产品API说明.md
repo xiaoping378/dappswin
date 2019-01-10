@@ -117,5 +117,5 @@ WS地址: ``wss://dappswin.io/api/ws``
 
    - 如果是type101 为EOS押注消息，从左到右以此取 data.from, data.quantity .time(精确到0.5秒)
    - 如果是type102 为EOS收益消息,从左到右以此取 data.to, data.amount, .time(精确到0.5秒)
-   - 如果是type111 为CGG押注消息,从左到右以此取 data.to, data.amount, .time(精确到0.5秒)
+   - 如果是type111 为CGG押注消息,从左到右以此取 data.from, data.amount, .time(精确到0.5秒)
    - 如果是type112 为CGG收益消息,从左到右以此取 data.to, data.amount, .time(精确到0.5秒)

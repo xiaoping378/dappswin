@@ -26,16 +26,15 @@ func checkWinRoutine() {
 
 			for i, tx := range txs {
 				_, betInfo, _ := models.ResolveMemo(tx.Memo)
-				glog.Infof("betInfo is %s, %s, %d", betInfo, game.Result, tx.Amount)
+				glog.Infof("betInfo is %s, %s, %f", betInfo, game.Result, tx.Amount)
 				winTimes, betnum := HandleBetInfo(betInfo, []byte(game.Result))
 				if winTimes > 0 {
 					winValue := calcBenefit(winTimes, betnum, tx.Amount)
 					// TODO call cleos unlock transfer EOS and lock, if OK update SQL.
-					glog.Infof("开始发放奖励, to %s,  %s", tx.From, winValue)
-
 					// {"bookid":0,"status":0,"to":"kunoichi3141","amount":"0.3920 EOS","memo":"win|25736640:50090:e"}
-					memo := "win|" + fmt.Sprint(game.Id) + ":" + game.Result + ":" + betInfo
+					memo := "win|" + fmt.Sprint(game.GameMintue) + ":" + game.Result + ":" + betInfo
 					reward := &models.Reward{Amount: winValue + " " + coinNames[tx.CoinID], ID: i, Status: handled, To: tx.From, Memo: memo}
+					glog.Infof("开始发放奖励, %#v", reward)
 
 					//构造赢家消息
 					gameStr, _, _ := models.ResolveMemo(tx.Memo)
@@ -47,7 +46,7 @@ func checkWinRoutine() {
 						if hash, err := sendTokens(tx.From, quan); err == nil {
 							amount, _ := strconv.ParseFloat(winValue, 64)
 							models.AddTx(&models.Tx{TxID: hash, From: eosConf.GameAccount, To: tx.From,
-								Amount: uint64(amount * 1e4), CoinID: tx.CoinID, Memo: memo, Status: handled, TimeMills: tx.TimeMills, TimeMintue: tx.TimeMintue})
+								Amount: amount, CoinID: tx.CoinID, Memo: memo, Status: handled, TimeMills: tx.TimeMills, TimeMintue: tx.TimeMintue})
 						}
 					}(&tx, quan)
 
@@ -67,7 +66,7 @@ func checkWinRoutine() {
 }
 
 // "0.1000"
-func calcBenefit(times int, betTimes int, amount uint64) string {
-	s := fmt.Sprintf("%.4f", float64(amount)/1e4/float64(betTimes)*float64(times)*98/100)
+func calcBenefit(times int, betTimes int, amount float64) string {
+	s := fmt.Sprintf("%.4f", amount/float64(betTimes)*float64(times)*98/100)
 	return s
 }

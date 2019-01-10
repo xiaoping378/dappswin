@@ -6,6 +6,7 @@ import (
 
 	"dappswin/models"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 )
 
@@ -78,4 +79,32 @@ func isNumber(s string) bool {
 type GameWS struct {
 	ID     int64 `json:"gameid"`
 	Result int64 `json:"result"`
+}
+
+type gamePagePost struct {
+	PageIndex int `json:"page_index" binding:"required,gt=0,lt=100"`
+	PageSize  int `json:"page_size" binding:"required,gt=0,lt=100"`
+}
+
+type pageGameRsp struct {
+	Count int            `json:"count"`
+	Data  []*models.Game `json:"data"`
+}
+
+func pageLottery(c *gin.Context) {
+	body := &gamePagePost{}
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(NewMsg(400, "输入参数有误"))
+		return
+	}
+	games := []*models.Game{}
+	var count int
+	index := (body.PageIndex - 1) * body.PageSize
+
+	if err := db.Where(models.Game{}).Offset(index).Limit(body.PageSize).Order("id desc").Find(&games).Count(&count).Error; err != nil {
+		c.JSON(NewMsg(500, "系统内部错误"))
+		return
+	}
+
+	c.JSON(NewMsg(200, &pageGameRsp{count, games}))
 }

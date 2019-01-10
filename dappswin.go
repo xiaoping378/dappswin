@@ -41,7 +41,7 @@ func main() {
 	// app.WSRegister(api)
 	// app.UserRegister(api)
 	// app.EosRegister(api)
-	app.AppRegister(api)
+	app.Register(api)
 
 	r.Use(static.Serve("/", static.LocalFile("./views", true)))
 

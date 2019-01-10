@@ -37,7 +37,7 @@ func getBlockByNum(num uint32) (*BlockRsp, error) {
 	params := fmt.Sprintf(`{"block_num_or_id": %d}`, num)
 	url := eosConf.RPCURL + "/v1/chain/get_block"
 
-	timeout := time.Duration(3 * time.Second)
+	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
@@ -103,7 +103,7 @@ func resolveBlock(num uint32, retry int) {
 
 func getHeadNum() uint32 {
 	url := eosConf.RPCURL + "/v1/chain/get_info"
-	timeout := time.Duration(3 * time.Second)
+	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}

@@ -83,11 +83,11 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 
 	str := strings.Split(action.Data.Quantity, " ")
 	amount, _ := strconv.ParseFloat(str[0], 64)
-	glog.Infof("Coming amount is %s, %s,  %s, %f, timemills: %d , %d期游戏", action.Data.Quantity, str[0], action.Data.From, amount, txsMsg.TimeMills, txsMsg.TimeMills/1000/60)
+	glog.Infof("Coming Bet is %s, %s,  %s, %f, timemills: %d , %d期游戏", action.Data.Quantity, str[0], action.Data.From, amount, txsMsg.TimeMills, txsMsg.TimeMills/1000/60)
 
 	txdb := &models.Tx{
 		TxID: hash, BlockNum: txsMsg.BlockNum,
-		From: action.Data.From, To: action.Data.To, Amount: uint64(amount * 1e4), CoinID: coinIDs[coin], Memo: action.Data.Memo,
+		From: action.Data.From, To: action.Data.To, Amount: amount, CoinID: coinIDs[coin], Memo: action.Data.Memo,
 		Status: pending, TimeMills: txsMsg.TimeMills, TimeMintue: txsMsg.TimeMills / 1000 / 60}
 
 	go models.AddTx(txdb)
