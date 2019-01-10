@@ -52,12 +52,13 @@ func checkICORoutine() {
 	for {
 		select {
 		case ico := <-icochan:
-			glog.V(7).Infof("有人投ICO募资了，who=>%s 额度是%s EOS", ico.Account, fmt.Sprintf("%.4f", float64(ico.Amount)/1e4))
+			glog.Infof("有人投ICO募资了，who=>%s 额度是%s EOS", ico.Account, fmt.Sprintf("%.4f", float64(ico.Amount)/1e4))
 
 			amount := getRefund(ico.TimeMills, float64(ico.Amount)) / 1e4
 			quantity := fmt.Sprintf("%.4f ", amount) + eosConf.TokenSymbol
 			glog.Infof("奖励购买的代币===========> to %s, quantity: %s", ico.Account, quantity)
-			if err := sendTokens(ico.Account, quantity); err == nil {
+			if hash, err := sendTokens(ico.Account, quantity); err == nil {
+				glog.Infof("to %s, %s, hash is %s", ico.Account, quantity, hash)
 				if err := db.Model(ico).Update("status", handled).Error; err != nil {
 					glog.Error(err)
 				}

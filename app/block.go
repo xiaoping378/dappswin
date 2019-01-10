@@ -36,7 +36,13 @@ type BlockRsp struct {
 func getBlockByNum(num uint32) (*BlockRsp, error) {
 	params := fmt.Sprintf(`{"block_num_or_id": %d}`, num)
 	url := eosConf.RPCURL + "/v1/chain/get_block"
-	resp, err := http.Post(url, "application/json", strings.NewReader(params))
+
+	timeout := time.Duration(3 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	resp, err := client.Post(url, "application/json", strings.NewReader(params))
 	if nil != err {
 		glog.Errorf("getBlockByNum - http.Post(%s) with params %s failed : %v", url, params, err)
 		return nil, err
@@ -57,16 +63,20 @@ func getBlockByNum(num uint32) (*BlockRsp, error) {
 	return blk, nil
 }
 
-func resolveBlock(num uint32) {
+func resolveBlock(num uint32, retry int) {
 	glog.V(7).Infof("resolving Block num: %d", num)
-	blkRsp, err := getBlockByNum(num)
-	if err != nil {
-		// TODO, notify chan to recheck it.
-		glog.Errorf("resolve block num %d : err %v", num, err)
+	var blkRsp = &BlockRsp{}
+	var err error
+	for i := 0; i < retry; i++ {
 		blkRsp, err = getBlockByNum(num)
-		if err != nil {
-			return
+		if err == nil && blkRsp.Num >= cachedHeadNum {
+			break
 		}
+	}
+	// handle
+	if err != nil || blkRsp.Hash == "" {
+		glog.Errorf("!!!!!!!!!Error for getting block numer: %d, %v", num, err)
+		return
 	}
 
 	tm, _ := time.Parse("2006-01-02T15:04:05.999999999", blkRsp.Time)
@@ -144,7 +154,7 @@ func ResolveRoutine() {
 			glog.Infof("head num is %d, cached is %d", head, cachedHeadNum)
 
 			for i := cachedHeadNum + 1; i <= head; i++ {
-				resolveBlock(i)
+				resolveBlock(i, 7)
 				cachedHeadNum = i
 			}
 

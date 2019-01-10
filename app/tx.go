@@ -7,6 +7,7 @@ import (
 
 	"dappswin/models"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 )
 
@@ -91,4 +92,33 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 
 	go models.AddTx(txdb)
 	return &msg
+}
+
+type pageTXPost struct {
+	PageIndex int    `json:"page_index" binding:"required,gt=0,lt=100"`
+	PageSize  int    `json:"page_size" binding:"required,gt=0,lt=100"`
+	Name      string `json:"name" binding:"required,max=12"`
+}
+
+type pageTXRsp struct {
+	Count int          `json:"count"`
+	Data  []*models.Tx `json:"data"`
+}
+
+func pageTxes(c *gin.Context) {
+	body := &pageTXPost{}
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(NewMsg(400, "输入参数有误"))
+		return
+	}
+	txes := []*models.Tx{}
+	var count int
+	index := (body.PageIndex - 1) * body.PageSize
+
+	if err := db.Where(models.Tx{From: body.Name}).Offset(index).Limit(body.PageSize).Order("time_mintue desc").Find(&txes).Count(&count).Error; err != nil {
+		c.JSON(NewMsg(500, "系统内部错误"))
+		return
+	}
+
+	c.JSON(NewMsg(200, &pageTXRsp{count, txes}))
 }

@@ -8,10 +8,10 @@ import (
 
 var Huber = newHub()
 
-// Register register stats service
-func WSRegister(router *gin.RouterGroup) {
-	router.GET("/ws", serveWs)
-}
+// // Register register stats service
+// func WSRegister(router *gin.RouterGroup) {
+// 	router.GET("/ws", serveWs)
+// }
 
 // serveWs handles websocket requests from the peer.
 func serveWs(c *gin.Context) {

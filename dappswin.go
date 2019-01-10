@@ -38,9 +38,10 @@ func main() {
 	r.Use(cors.Default())
 
 	api := r.Group("/api")
-	app.WSRegister(api)
-	app.UserRegister(api)
-	app.EosRegister(api)
+	// app.WSRegister(api)
+	// app.UserRegister(api)
+	// app.EosRegister(api)
+	app.AppRegister(api)
 
 	r.Use(static.Serve("/", static.LocalFile("./views", true)))
 

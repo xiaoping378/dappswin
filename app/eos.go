@@ -5,6 +5,7 @@ import (
 	"dappswin/conf"
 	"dappswin/database"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -78,16 +79,17 @@ func newEosConf() *EosConf {
 	}
 }
 
-func sendTokens(to string, quan string) error {
+func sendTokens(to string, quan string) (hash string, err error) {
 
 	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "wallet", "unlock", "--password", eosConf.WalletPW)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		glog.Errorf("cmd.Run() failed with %s\nErr:\n%s", err, string(stderr.Bytes()))
+		glog.Warningf("cleos unlock failed with %s\nErr:\n%s", err, string(stderr.Bytes()))
 	}
-	defer exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "wallet", "lock").Run()
+
+	// defer exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "wallet", "lock").Run()
 
 	// cleos push action eosio.token transfer '['xiaopingeos2', "xiaopingeos3", "2.0000 EOS", "转账EOS"]' -p xiaopingeos2@active
 	// cleos push action xxptoken1234 transfer '['xiaopingeos2', "xiaopingeos3", "2.0000 CGG", "转账代币"]' -p xiaopingeos2@active
@@ -98,17 +100,37 @@ func sendTokens(to string, quan string) error {
 		account = eosConf.TokenAccount
 	}
 
-	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", eosConf.ICOAccount, to, quan, " ")
-	args := []string{"--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "push", "action", account, "transfer", actionData, "-p", eosConf.ICOAccount}
+	var sender string
+	if eosConf.EnableICO {
+		sender = eosConf.ICOAccount
+	} else {
+		sender = eosConf.GameAccount
+	}
+
+	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", sender, to, quan, " ")
+	args := []string{"--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "push", "action", account, "transfer", actionData, "-p", sender + "@active"}
 	cmd = exec.Command("cleos", args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		glog.Errorf("cmd.Run() failed with %s\nErr:\n%s", err, string(stderr.Bytes()))
-		return err
+		glog.Errorf("push transfer failed with %s\nErr:\n%s", err, string(stderr.Bytes()))
+		return "", err
 	}
 
-	return nil
+	output := string(stderr.Bytes())
+	glog.V(7).Infof("output is : \n%s\n", output)
+	hash1 := strings.SplitN(output, "executed transaction: ", 2)
+	if len(hash1) != 2 {
+		return "", errors.New("reslove hash error")
+
+	}
+	hash2 := strings.SplitN(hash1[1], " ", 2)
+	if len(hash2) != 2 {
+		return "", errors.New("reslove hash error")
+
+	}
+
+	return hash2[0], nil
 }
 
 func checkcleosExists() {
@@ -119,7 +141,7 @@ func checkcleosExists() {
 		glog.Infof("'cleos' executable is in '%s'", path)
 	}
 
-	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "get", "currency", "balance", "eosio.token", eosConf.ICOAccount)
+	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "get", "currency", "balance", "eosio.token", eosConf.GameAccount)
 	glog.Info(cmd.Args)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -131,10 +153,10 @@ func checkcleosExists() {
 
 }
 
-// EosRegister 注册balance相关路由
-func EosRegister(router *gin.RouterGroup) {
-	router.POST("/chain/get_currency_balance", getCurrencyBalance)
-}
+// // EosRegister 注册balance相关路由
+// func EosRegister(router *gin.RouterGroup) {
+// 	router.POST("/chain/get_currency_balance", getCurrencyBalance)
+// }
 
 type balancePost struct {
 	Code    string `json:"code" binding:"required,max=12"`

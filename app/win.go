@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"dappswin/models"
 
@@ -34,15 +35,28 @@ func checkWinRoutine() {
 
 					// {"bookid":0,"status":0,"to":"kunoichi3141","amount":"0.3920 EOS","memo":"win|25736640:50090:e"}
 					memo := "win|" + fmt.Sprint(game.Id) + ":" + game.Result + ":" + betInfo
-					reward := &models.Reward{Amount: winValue + " " + coinNames[tx.CoinID], ID: i, Status: 0, To: tx.From, Memo: memo}
+					reward := &models.Reward{Amount: winValue + " " + coinNames[tx.CoinID], ID: i, Status: handled, To: tx.From, Memo: memo}
 
 					//构造赢家消息
-					msg = &models.Message{gameType, game.BlockNum, tx.TxID, tx.TimeMills, reward}
+					gameStr, _, _ := models.ResolveMemo(tx.Memo)
+					msg = &models.Message{wsTypes[gameStr+coinNames[tx.CoinID]+"Win"], game.BlockNum, tx.TxID, tx.TimeMills, reward}
 					// msg.HandleTimeStamp()
 					msgs = append(msgs, msg)
+					quan := winValue + " " + coinNames[tx.CoinID]
+					go func(tx *models.Tx, quan string) {
+						if hash, err := sendTokens(tx.From, quan); err == nil {
+							amount, _ := strconv.ParseFloat(winValue, 64)
+							models.AddTx(&models.Tx{TxID: hash, From: eosConf.GameAccount, To: tx.From,
+								Amount: uint64(amount * 1e4), CoinID: tx.CoinID, Memo: memo, Status: handled, TimeMills: tx.TimeMills, TimeMintue: tx.TimeMintue})
+						}
+					}(&tx, quan)
+
 				}
+
 				tx.Status = handled
 				models.UpdateTxById(&tx)
+
+				// TODO make winTX, save to DB
 			}
 			if len(msgs) > 0 {
 				buf, _ := json.Marshal(msgs)
