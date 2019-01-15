@@ -238,6 +238,7 @@ func getBalanceRoutine() {
 		return
 	}
 	balance, _ := decimal.NewFromString(result[0])
+	balance = balance.Add(decimal.NewFromFloat(conf.C.GetFloat64("eos.ICOFakeAmount")))
 
 	percent := balance.Div(decimal.NewFromFloat(eosConf.TotalAmount)).Mul(decimal.NewFromFloat(100))
 	setPercent(percent.StringFixed(2))

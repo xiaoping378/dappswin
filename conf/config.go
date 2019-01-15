@@ -29,6 +29,7 @@ func Init() {
 	glog.Info("Using config file:", C.ConfigFileUsed())
 
 	loadDefaultConfig()
+	C.WatchConfig()
 
 }
 

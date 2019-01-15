@@ -1,0 +1,119 @@
+
+@host=http://127.0.0.1:8080
+# @host=http://3.1.50.78
+
+@node=https://jungle2.cryptolions.io:443
+
+### 查询进度条
+POST {{host}}/api/chain/get_currency_balance HTTP/1.1
+Content-Type: application/json
+
+{
+    "code": "eosio.token",
+    "account": "cryptogame11",
+    "symbol": "EOS"
+}
+
+
+### 轮播图
+GET  {{host}}/api/news HTTP/1.1
+Content-Type: application/json
+
+
+### 绑定用户父级
+POST {{host}}/api/user/bind HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos4",
+    "pname": "xiaopingeos1"
+}
+
+
+### 我的下级
+POST {{host}}/api/user/page HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos1",
+    "page_index": 1,
+    "page_size": 10,
+    "order_by": "total_bet"
+}
+
+
+### 我的佣金
+POST {{host}}/api/user/page HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos1",
+    "date_range": "2019/01/11-2019/01/13",
+    "page_index": 1,
+    "page_size": 10,
+    "order_by": "total_bet"
+}
+
+
+### 分红池
+POST {{host}}/api/bonus/pool HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos2"
+}
+
+
+### 分红记录
+GET  {{host}}/api/bonus/stats HTTP/1.1
+Content-Type: application/json
+
+
+### 竞拍
+GET {{host}}/api/arena
+Content-Type: application/json
+
+
+### 鲸鱼榜
+GET {{host}}/api/rank/stats_per_day
+Content-Type: application/json
+
+
+### 幸运抽奖 - 查询是否具备抽奖条件
+POST {{host}}/api/lucky/status HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos2"
+}
+
+
+### 幸运抽奖submit
+POST {{host}}/api/lucky/submit HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "xiaopingeos2"
+}
+
+
+### 我的EOS余额
+POST {{node}}/v1/chain/get_currency_balance HTTP/1.1
+Content-Type: application/json
+
+{
+    "code": "eosio.token",
+    "account": "xiaopingeos2",
+    "symbol": "EOS"
+}
+
+
+### 我的CGG余额
+POST {{node}}/v1/chain/get_currency_balance HTTP/1.1
+Content-Type: application/json
+
+{
+    "code": "eosio.token",
+    "account": "xiaopingeos2",
+    "symbol": "CGG"
+}

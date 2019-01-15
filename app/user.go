@@ -4,14 +4,13 @@ import (
 	"dappswin/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang/glog"
 )
 
 type InvitedUserPost struct {
 	PageIndex int    `json:"page_index" binding:"required,gt=0,lt=100"`
 	OrderBy   string `json:"order_by" binding:"required,len=9"`
 	PageSize  int    `json:"page_size" binding:"required,gt=0,lt=100"`
-	PName     string `json:"pid" binding:"required,max=12"`
+	Name      string `json:"name" binding:"required,max=12"`
 }
 
 type InvitedUserRsp struct {
@@ -22,24 +21,24 @@ type InvitedUserRsp struct {
 func pageUser(c *gin.Context) {
 	body := &InvitedUserPost{}
 	if err := c.ShouldBind(body); err != nil {
-		c.JSON(NewMsg(400, "输入参数有误"))
+		// c.JSON(NewMsg(400, "输入参数有误"))
+		c.JSON(NewMsg(400, err.Error()))
 		return
 	}
 	users := []*models.User{}
-	user := &models.User{}
+	// user := models.User{}
 	var count int
 	index := (body.PageIndex - 1) * body.PageSize
 
-	db.Where(models.User{PName: body.PName}).Offset(index).Limit(body.PageSize - 1).Order(body.OrderBy + " desc").Find(&users).Count(&count)
-	if db.Error != nil {
-		glog.Error(db.Error)
+	if err := db.Where(models.User{PName: body.Name}).Offset(index).Limit(body.PageSize - 1).Order(body.OrderBy + " desc").Find(&users).Count(&count).Error; err != nil {
 		c.JSON(NewMsg(500, "系统内部错误"))
 		return
 	}
-	// 这个业务需求需要加上自己 最前边送到前端展示
-	db.Where(models.User{Name: body.PName}).First(user)
-	users = append([]*models.User{user}, users...)
-	// end
+
+	// // 这个业务需求需要加上自己到最前边， 送到前端展示
+	// if unfound := db.Where(models.User{Name: body.Name}).First(&user).RecordNotFound(); !unfound {
+	// 	users = append([]*models.User{&user}, users...)
+	// }
 
 	c.JSON(NewMsg(200, &InvitedUserRsp{count, users}))
 }
@@ -49,8 +48,45 @@ func dateUser(c *gin.Context) {
 }
 
 type loginUserPost struct {
-	Name  string
-	PName string
+	Name  string `json:"name" binding:"required,max=12"`
+	PName string `json:"pname" binding:"required,max=12"`
+}
+
+func bindUser(c *gin.Context) {
+	body := &loginUserPost{}
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(NewMsg(400, "输入参数有误"))
+		return
+	}
+	user := models.User{}
+	if unfound := db.Where("name = ?", body.Name).First(&user).RecordNotFound(); unfound {
+		if err := db.Create(&models.User{Name: body.Name, PName: body.PName}).Error; err != nil {
+			c.JSON(NewMsg(500, "系统内部错误"))
+			return
+		}
+	}
+	if user.PName != "" {
+		c.JSON(NewMsg(400, "已经绑定过了"))
+		return
+	}
+	user.Name = body.Name
+
+	// update pnames
+	pUser := models.User{}
+	if unfound := db.Where("name = ?", body.PName).First(&pUser).RecordNotFound(); unfound {
+		if err := db.Create(&models.User{Name: body.PName}).Error; err != nil {
+			c.JSON(NewMsg(500, "系统内部错误"))
+			return
+		}
+	}
+	user.PNames = body.PName + "," + pUser.PNames
+
+	if err := db.Model(&user).Where("name = ?", body.Name).Update(&user).Error; err != nil {
+		c.JSON(NewMsg(500, "系统内部错误"))
+		return
+	}
+
+	c.JSON(NewMsg(200, "绑定成功"))
 }
 
 func hasParent(name string) bool {

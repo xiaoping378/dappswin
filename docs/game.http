@@ -1,0 +1,47 @@
+# @host=http://127.0.0.1:8080
+@host=http://3.1.50.78
+
+@node=https://jungle2.cryptolions.io:443
+
+### 我的投注
+POST {{host}}/api/tx/page_tx
+Content-Type: application/json
+
+{
+    "page_index": 1,
+    "page_size": 10,
+    "name": "liuxuexi5211"
+}
+
+### 开奖历史记录
+POST {{host}}/api/game/page_lottery
+Content-Type: application/json
+
+{
+    "page_index": 1,
+    "page_size": 10
+}
+
+### 奖池金额
+POST {{node}}/v1/chain/get_currency_balance HTTP/1.1
+Content-Type: application/json
+
+{
+    "code": "eosio.token",
+    "account": "xxptoken1234",
+    "symbol": "EOS"
+}
+
+### 投注限额 是奖池金额结果的20%
+
+### max计算方法， 是投注限额/当前注数/10^(星数)
+1000/10/1000 = 0.1
+
+### 查询期号， 取game_minture字段，并自动加1，这里显示的是下一期的期号
+POST {{host}}/api/game/page_lottery
+Content-Type: application/json
+
+{
+    "page_index": 1,
+    "page_size": 1
+}

@@ -1,3 +1,6 @@
+[general]
+newsSource = "/etc/dappswin/news.json"
+
 [gin]
 port = 8080
 runmode = "dev"
@@ -6,16 +9,16 @@ EnableAdmin = false
 
 [eos]
 # TODO 节点池
-# RPCURL = "https://jungle2.cryptolions.io"
+RPCURL = "https://jungle2.cryptolions.io"
 WalletURL = "unix:///home/xxp/eosio-wallet/keosd.sock"
 WalletPW = "PW5KEVCDpGccbv7cpXkoBD5eqESYtKiu4npo5ZmdJg2DpbXR9YMx6"
-GameAccount = "eosplaybrand"
+GameAccount = "xxptoken1234"
 ICOAccount = "xiaopingeos2"
 TokenAccount = "xxptoken1234"
 # FromBlkNum = 7529733
-FromBlkNum = 36670086
+FromBlkNum = 8188131
 
-RPCURL = "https://proxy.eosnode.tools"
+# RPCURL = "https://proxy.eosnode.tools"
 # WalletURL = "unix:///root/eosio-wallet/keosd.sock"
 # WalletPW = "PW5Jw3kodJVotFzaaUVz7H3KsesTRxwNY761kh1sDEctTcpwf2ubm"
 # GameAccount = "cryptogame12"
@@ -26,8 +29,9 @@ RPCURL = "https://proxy.eosnode.tools"
 # 间隔单位（ms）
 FetchIdleDur = 500
 EnableICO = true
-ICOStartTime = 1546769673000
+ICOStartTime = 1547352488000
 ICOTotalAmount = 60000
+ICOFakeAmount = 12000
 TokenSymbol = "CGG"
 EOS_CGG = 20
 

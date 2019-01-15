@@ -10,17 +10,17 @@ import (
 // User 用户返佣系统
 type User struct {
 	gorm.Model
-	Name           string `json:"Account" gorm:"size:12;unique"`
-	PName          string `json:"Pid" gorm:"size:12;index"`
-	PNames         string `json:"Pids"`
-	Level          uint8  `json:"Level"`
-	ChildrenCount  int    `json:"ChildrenCount"`
-	Bet            uint64 `json:"Bet"`
-	ChildrenBet    uint64 `json:"ChildrenBet"`
-	Rebate         uint32 `json:"Rebate"`
-	ChildrenRebate uint32 `json:"ChildrenRebate"`
-	TotalBet       uint64 `json:"TotalBet"`
-	TotalRebate    uint64 `json:"TotalRebate"`
+	Name          string `json:"name" gorm:"size:12;index"`
+	PName         string `json:"-" gorm:"size:12;index"`
+	PNames        string `json:"-"`
+	Level         uint8  `json:"-"`
+	ChildrenCount int    `json:"children_count"`
+	TotalBet      uint64 `json:"total_bet"`
+	TotalRebate   uint64 `json:"total_rebate"`
+	Bet           uint64 `json:"-"`
+	Rebate        uint32 `json:"-"`
+	// ChildrenBet    uint64 `json:"-"`
+	// ChildrenRebate uint32 `json:"-"`
 }
 
 func updateParent(name string, bet uint64, isNew bool) {
@@ -33,7 +33,7 @@ func updateParent(name string, bet uint64, isNew bool) {
 	}
 
 	user.TotalBet += bet
-	user.ChildrenBet += bet
+	// user.ChildrenBet += bet
 	user.Level = getLevel(uint64(user.TotalBet / 1e4))
 
 	if user.ID == 0 {
