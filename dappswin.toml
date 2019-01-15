@@ -16,7 +16,7 @@ GameAccount = "xxptoken1234"
 ICOAccount = "xiaopingeos2"
 TokenAccount = "xxptoken1234"
 # FromBlkNum = 7529733
-FromBlkNum = 8188131
+FromBlkNum = 8894300
 
 # RPCURL = "https://proxy.eosnode.tools"
 # WalletURL = "unix:///root/eosio-wallet/keosd.sock"
@@ -28,7 +28,7 @@ FromBlkNum = 8188131
 
 # 间隔单位（ms）
 FetchIdleDur = 500
-EnableICO = true
+EnableICO = false
 ICOStartTime = 1547352488000
 ICOTotalAmount = 60000
 ICOFakeAmount = 12000

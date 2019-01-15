@@ -57,7 +57,7 @@ func resloveTXRoutine() {
 
 func handleTX(coin string, hash string, action models.Action, txsMsg *models.Message) *models.Message {
 	msg := models.Message{}
-
+	glog.Infof("coin %s to %s", coin, action.Data.To)
 	if eosConf.EnableICO && coin == "EOS" && action.Data.To == eosConf.ICOAccount {
 		t := models.TX{Quantity: action.Data.Quantity}
 		ico := &models.ICO{Hash: hash, Account: action.Data.From, Amount: t.Amount(), Status: pending, TimeMills: txsMsg.TimeMills}
@@ -68,7 +68,6 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 	if action.Data.To != eosConf.GameAccount {
 		return nil
 	}
-
 	game, _, _ := models.ResolveMemo(action.Data.Memo)
 
 	msg.BlockNum = txsMsg.BlockNum
@@ -91,6 +90,7 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 		Status: pending, TimeMills: txsMsg.TimeMills, TimeMintue: txsMsg.TimeMills / 1000 / 60}
 
 	go models.AddTx(txdb)
+	go updateUsersFromTX(txdb)
 	return &msg
 }
 

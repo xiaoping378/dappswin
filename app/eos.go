@@ -79,7 +79,7 @@ func newEosConf() *EosConf {
 	}
 }
 
-func sendTokens(to string, quan string) (hash string, err error) {
+func sendTokens(to string, quan string, memo string) (hash string, err error) {
 
 	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "wallet", "unlock", "--password", eosConf.WalletPW)
 	var stdout, stderr bytes.Buffer
@@ -107,7 +107,7 @@ func sendTokens(to string, quan string) (hash string, err error) {
 		sender = eosConf.GameAccount
 	}
 
-	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", sender, to, quan, " ")
+	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", sender, to, quan, memo)
 	args := []string{"--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "push", "action", account, "transfer", actionData, "-p", sender + "@active"}
 	cmd = exec.Command("cleos", args...)
 	cmd.Stdout = &stdout

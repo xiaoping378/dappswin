@@ -1,6 +1,7 @@
 package models
 
 import (
+	"dappswin/conf"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -88,8 +89,8 @@ func (a Action) Coin() string {
 	switch a.Account {
 	case "eosio.token":
 		return "EOS"
-	case "cryptogame12":
-		return "CGG"
+	case conf.C.GetString("eos.TokenAccount"):
+		return conf.C.GetString("eos.TokenSymbol")
 	default:
 		// glog.Warningf("not supported coin %s", a.Account)
 		return ""

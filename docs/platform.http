@@ -26,16 +26,15 @@ Content-Type: application/json
 
 {
     "name": "xiaopingeos4",
-    "pname": "xiaopingeos1"
+    "pname": "xiaopingeos3"
 }
-
 
 ### 我的下级
 POST {{host}}/api/user/page HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "xiaopingeos1",
+    "name": "xiaopingeos2",
     "page_index": 1,
     "page_size": 10,
     "order_by": "total_bet"
