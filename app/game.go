@@ -30,7 +30,8 @@ func gameRoutine() {
 				glog.Infof("gameResult....: %s, len is %d, %d, BlockTime is %d", gameResult, len(gameResult), block.Num, block.Time)
 				if len(gameResult) == gameCodeLen {
 					// 记录成上一分钟的值，数据库好匹配
-					gameorm := &models.Game{Result: gameResult, BlockNum: block.Num, TimeStamp: tm, GameMintue: int64(tm/60) - 1}
+					content := getGameContent(gameResult)
+					gameorm := &models.Game{Result: gameResult, BlockNum: block.Num, TimeStamp: tm, GameMintue: int64(tm/60) - 1, Content: content}
 					if err := models.AddGame(gameorm); err != nil {
 						glog.Errorf("insert game error %v", err)
 					}
@@ -40,7 +41,7 @@ func gameRoutine() {
 					winchan <- gameorm
 
 					r, _ := strconv.ParseInt(gameResult, 10, 32)
-					gamews := &GameWS{gameID, r, getGameContent(gameResult)}
+					gamews := &GameWS{gameID, r, content}
 					pushGameMessage(block, gamews)
 					// TODO push to win.go
 					isGameDone = true
@@ -79,7 +80,7 @@ func isNumber(s string) bool {
 type GameWS struct {
 	ID      int64  `json:"gameid"`
 	Result  int64  `json:"result"`
-	Content string `json:content`
+	Content string `json:"content"`
 }
 
 func getGameContent(result string) string {
@@ -105,7 +106,8 @@ type gamePagePost struct {
 }
 
 type pageGameRsp struct {
-	Count int            `json:"count"`
+	Count int            `json:"total_items"`
+	Pages int            `json:"total_pages"`
 	Data  []*models.Game `json:"data"`
 }
 
@@ -119,10 +121,13 @@ func pageLottery(c *gin.Context) {
 	var count int
 	index := (body.PageIndex - 1) * body.PageSize
 
-	if err := db.Where(models.Game{}).Offset(index).Limit(body.PageSize).Order("id desc").Find(&games).Count(&count).Error; err != nil {
+	if err := db.Where(models.Game{}).Offset(index).Limit(body.PageSize).Order("id desc").Find(&games).Error; err != nil {
 		c.JSON(NewMsg(500, "系统内部错误"))
 		return
 	}
-
-	c.JSON(NewMsg(200, &pageGameRsp{count, games}))
+	if err := db.Model(models.Game{}).Count(&count).Error; err != nil {
+		c.JSON(NewMsg(500, "系统内部错误"))
+		return
+	}
+	c.JSON(NewMsg(200, &pageGameRsp{count, (count / body.PageSize) + 1, games}))
 }

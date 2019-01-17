@@ -110,19 +110,19 @@ type Transaction struct {
 
 // Tx dave to DB
 type Tx struct {
-	Id       int64   `gorm:"PRIMARY_KEY" json:"id,omitempty"`
-	TxID     string  `gorm:"size:64" json:"hash,omitempty"`
-	BlockNum uint32  `json:"blocknum,omitempty"`
-	From     string  `json:"from,omitempty"`
-	To       string  `json:"to,omitempty"`
-	Amount   float64 `json:"amount,omitempty"`
-	CoinID   int     `json:"coinID,omitempty"`
-	Memo     string  `json:"memo,omitempty"`
+	Id       int64   `gorm:"PRIMARY_KEY" json:"id"`
+	TxID     string  `gorm:"size:64" json:"hash"`
+	BlockNum uint32  `json:"blocknum"`
+	From     string  `json:"from"`
+	To       string  `json:"to"`
+	Amount   float64 `json:"amount"`
+	CoinID   int     `json:"coinID"`
+	Memo     string  `json:"memo"`
 	// 判断是否待处理
-	Status    int8  `gorm:"index:status" json:"status,omitempty"`
-	TimeMills int64 `json:"timestamp,omitempty"`
+	Status    int8  `gorm:"index:status" json:"status"`
+	TimeMills int64 `json:"timestamp"`
 	// 提取属于哪一期游戏
-	TimeMintue int64 `gorm:"index:timemintue" json:"time_mintue,omitempty"`
+	TimeMintue int64 `gorm:"index:timemintue" json:"time_mintue"`
 }
 
 // AddTx insert a new Tx into database and returns

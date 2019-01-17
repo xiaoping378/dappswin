@@ -2,20 +2,21 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"github.com/shopspring/decimal"
 )
 
 // User 用户返佣系统
 type User struct {
-	gorm.Model
-	Name          string  `json:"name" gorm:"size:12;unique"`
-	PName         string  `json:"-" gorm:"size:12;index"`
-	PNames        string  `json:"-"`
-	Level         uint8   `json:"-"`
-	ChildrenCount int     `json:"children_count"`
-	TotalBet      float64 `json:"total_bet"`
-	TotalRebate   float64 `json:"total_rebate"`
-	Bet           float64 `json:"-"`
-	Rebate        float64 `json:"-"`
+	gorm.Model    `json:"-"`
+	Name          string          `json:"name" gorm:"size:12;unique"`
+	PName         string          `json:"-" gorm:"size:12;index"`
+	PNames        string          `json:"-"`
+	Level         uint8           `json:"-"`
+	ChildrenCount int             `json:"children_count"`
+	TotalBet      decimal.Decimal `json:"total_bet" sql:"type:decimal(20,8)"`
+	TotalRebate   decimal.Decimal `json:"total_rebate" sql:"type:decimal(20,8)"`
+	Bet           decimal.Decimal `json:"-" sql:"type:decimal(20,8)"`
+	Rebate        decimal.Decimal `json:"-" sql:"type:decimal(20,8)"`
 	// ChildrenBet    uint64 `json:"-"`
 	// ChildrenRebate uint32 `json:"-"`
 }

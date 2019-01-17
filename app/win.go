@@ -43,7 +43,7 @@ func checkWinRoutine() {
 					msgs = append(msgs, msg)
 					quan := winValue + " " + coinNames[tx.CoinID]
 					go func(tx *models.Tx, quan string, memo string) {
-						if hash, err := sendTokens(tx.From, quan, memo); err == nil {
+						if hash, err := sendTokens(eosConf.GameAccount, tx.From, quan, memo); err == nil {
 							amount, _ := strconv.ParseFloat(winValue, 64)
 							models.AddTx(&models.Tx{TxID: hash, From: eosConf.GameAccount, To: tx.From,
 								Amount: amount, CoinID: tx.CoinID, Memo: memo, Status: handled, TimeMills: tx.TimeMills, TimeMintue: tx.TimeMintue})

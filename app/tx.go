@@ -1,14 +1,17 @@
 package app
 
 import (
+	"dappswin/common"
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"dappswin/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	"github.com/shopspring/decimal"
 )
 
 // TODO creat message hub, switch message.Data.(type)
@@ -57,7 +60,7 @@ func resloveTXRoutine() {
 
 func handleTX(coin string, hash string, action models.Action, txsMsg *models.Message) *models.Message {
 	msg := models.Message{}
-	glog.Infof("coin %s to %s", coin, action.Data.To)
+	glog.V(7).Infof("coin %s to %s", coin, action.Data.To)
 	if eosConf.EnableICO && coin == "EOS" && action.Data.To == eosConf.ICOAccount {
 		t := models.TX{Quantity: action.Data.Quantity}
 		ico := &models.ICO{Hash: hash, Account: action.Data.From, Amount: t.Amount(), Status: pending, TimeMills: txsMsg.TimeMills}
@@ -65,9 +68,26 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 		icochan <- ico
 		return nil
 	}
+
+	// 操作质押的逻辑
+	if coin == "CGG" && action.Data.To == eosConf.LockAccount {
+		str := strings.Split(action.Data.Quantity, " ")
+		amount, _ := strconv.ParseFloat(str[0], 64)
+		// db.Save(&models.Stake{Name: action.Data.From, Amount: amount, Date: common.JSONTime{Time: time.Now().Add(24 * time.Hour)}, Status: staked})
+		stake := models.Stake{Name: action.Data.From, Amount: decimal.NewFromFloat(amount), Date: common.JSONTime{Time: time.Now()}, Status: staked}
+		if unfound := db.Where("name = ?", action.Data.From).First(&stake).RecordNotFound(); unfound {
+			db.Save(&stake)
+			return nil
+		}
+		decimalAmount := stake.Amount.Add(decimal.NewFromFloat(amount))
+		db.Model(&models.Stake{}).Where("name = ?", action.Data.From).Update(&models.Stake{Amount: decimalAmount})
+		return nil
+	}
+
 	if action.Data.To != eosConf.GameAccount {
 		return nil
 	}
+
 	game, _, _ := models.ResolveMemo(action.Data.Memo)
 
 	msg.BlockNum = txsMsg.BlockNum

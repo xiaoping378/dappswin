@@ -12,7 +12,7 @@ var db *gorm.DB
 
 func Init() {
 	db = database.Db
-	db.AutoMigrate(&Block{}, &User{}, &Tx{}, &Game{}, &ICO{})
+	db.AutoMigrate(&Block{}, &User{}, &Tx{}, &Game{}, &ICO{}, &Stake{})
 }
 
 // Block ws send to hub

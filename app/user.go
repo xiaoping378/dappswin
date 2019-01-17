@@ -1,13 +1,16 @@
 package app
 
 import (
+	"dappswin/conf"
 	"dappswin/models"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
 	"github.com/jinzhu/gorm"
+	"github.com/shopspring/decimal"
 )
 
 const invitedLevel = 9
@@ -20,7 +23,8 @@ type InvitedUserPost struct {
 }
 
 type InvitedUserRsp struct {
-	Count int            `json:"count"`
+	Count int            `json:"total_items"`
+	Pages int            `json:"total_pages"`
 	Data  []*models.User `json:"data"`
 }
 
@@ -36,17 +40,21 @@ func pageUser(c *gin.Context) {
 	var count int
 	index := (body.PageIndex - 1) * body.PageSize
 
-	if err := db.Where(models.User{PName: body.Name}).Offset(index).Limit(body.PageSize - 1).Order(body.OrderBy + " desc").Find(&users).Count(&count).Error; err != nil {
+	if err := db.Where(models.User{PName: body.Name}).Offset(index).Limit(body.PageSize).Order(body.OrderBy + " desc").Find(&users).Error; err != nil {
 		c.JSON(NewMsg(500, "系统内部错误"))
 		return
 	}
 
+	if err := db.Model(models.User{}).Where(models.User{PName: body.Name}).Count(&count).Error; err != nil {
+		c.JSON(NewMsg(500, "系统内部错误"))
+		return
+	}
 	// // 这个业务需求需要加上自己到最前边， 送到前端展示
 	// if unfound := db.Where(models.User{Name: body.Name}).First(&user).RecordNotFound(); !unfound {
 	// 	users = append([]*models.User{&user}, users...)
 	// }
 
-	c.JSON(NewMsg(200, &InvitedUserRsp{count, users}))
+	c.JSON(NewMsg(200, &InvitedUserRsp{count, (count / body.PageSize) + 1, users}))
 }
 
 func dateUser(c *gin.Context) {
@@ -139,7 +147,7 @@ var invitedReward = [invitedLevel]float64{0.1, 0.05, 0.02, 0.02, 0.02, 0.02, 0.0
 
 func updateUsersFromTX(tx *models.Tx) {
 	name := tx.From
-	amount := tx.Amount
+	amount := decimal.NewFromFloat(tx.Amount)
 	user := models.User{}
 
 	if tx.CoinID != eos {
@@ -154,15 +162,16 @@ func updateUsersFromTX(tx *models.Tx) {
 		}
 	}
 
-	user.Bet += amount
-	user.TotalBet += amount
+	user.Bet.Add(amount)
+	user.TotalBet.Add(amount)
 	db.Model(&models.User{}).Where("name = ?", name).Update(&user)
-
-	if level := getNewVIP(user.Name, user.TotalBet); level > user.Level {
+	totalBetFloat, _ := strconv.ParseFloat(user.TotalBet.StringFixed(4), 64)
+	if level := getVIPLevel(totalBetFloat); level > user.Level {
 		db.Model(&models.User{}).Where("name = ?", user.Name).Update("level", level)
-		// TODO: VIP changed send 奖励。
-		sendTokens(user.Name, fmt.Sprintf("%0.4f EOS", 2.2), "达到新贵宾等级奖励")
+		sendTokens(eosConf.GameAccount, user.Name, fmt.Sprintf("%0.4f EOS", vipInfo[level-1].Rebate*vipInfo[level-1].Amount), "达到新贵宾等级奖励")
 	}
+
+	var amount2 decimal.Decimal
 
 	for index, pname := range strings.SplitN(user.PNames, ",", invitedLevel) {
 		if pname == "" {
@@ -170,14 +179,18 @@ func updateUsersFromTX(tx *models.Tx) {
 		}
 		pUser := models.User{}
 		db.Model(&models.User{}).Where("name = ?", pname).First(&pUser)
-		pUser.TotalBet += amount
-		rebate := amount * 0.2 * invitedReward[index]
-		pUser.TotalRebate += rebate
+		pUser.TotalBet.Add(amount)
+		rebate := amount.Mul(decimal.NewFromFloat(0.2).Mul(decimal.NewFromFloat(invitedReward[index])))
+		amount2.Add(rebate)
+		pUser.TotalRebate.Add(rebate)
 		db.Model(&models.User{}).Where("name = ?", pname).Update(&pUser)
-		glog.Infof("sending rebate to pname %s ==> %f", pname, rebate)
-		if _, err := sendTokens(pname, fmt.Sprintf("%0.4f %s", rebate, coinNames[tx.CoinID]), "来自邀请下属的奖励"); err != nil {
+		glog.Infof("sending rebate to pname %s ==> %s", pname, rebate.String())
+		if _, err := sendTokens(eosConf.GameAccount, pname, rebate.StringFixed(4)+" "+coinNames[tx.CoinID], "来自邀请下属的奖励"); err != nil {
 			glog.Error(err)
 		}
 	}
 
+	// 分红池逻辑, 投注额的2%奖励完邀请人后，60%进入分红池
+	quan := amount.Sub(amount2).Mul(decimal.NewFromFloat(0.6)).StringFixed(4) + " " + coinNames[tx.CoinID]
+	sendTokens(eosConf.GameAccount, conf.C.GetString("eos.PlatformAccount"), quan, "分红池累积")
 }

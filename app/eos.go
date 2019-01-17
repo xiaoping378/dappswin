@@ -36,50 +36,59 @@ func Init() {
 	}
 	go Huber.run()
 	checkcleosExists()
-	go Forever(getBalanceRoutine, time.Second*10)
+	go Forever(updateICOBalance, time.Second*10)
+	go Forever(updateTotalLocked, 1*time.Minute)
+	go Forever(updateCirculat, 1*time.Minute)
+	go checkNotifyRoutine()
 	//
 }
 
 // EosConf :
 type EosConf struct {
-	RPCURL       string
-	ChainID      string
-	FetchIdleDur int    // 查询blk时间间隔
-	FromBlkNum   uint32 // 从哪个blocknum开始查询
-	GameAccount  string
-	ICOAccount   string
-	EnableICO    bool
-	ICOStartTime int64
-	TokenSymbol  string
-	TokenAccount string
-	EOS_CGG      float64
-	WalletURL    string
-	WalletPW     string
-	TotalAmount  float64
+	RPCURL              string
+	ChainID             string
+	FetchIdleDur        int    // 查询blk时间间隔
+	FromBlkNum          uint32 // 从哪个blocknum开始查询
+	GameAccount         string
+	ICOAccount          string
+	EnableICO           bool
+	ICOStartTime        int64
+	TokenSymbol         string
+	TokenAccount        string
+	EOS_CGG             float64
+	WalletURL           string
+	WalletPW            string
+	TotalAmount         float64
+	LockAccount         string
+	OfficialLockAccount string
+	TotalCGGAmoount     float64
 }
 
 func newEosConf() *EosConf {
 	dur := conf.C.GetInt("eos.FetchIdleDur")
 	num := conf.C.GetInt64("eos.FromBlkNum")
 	return &EosConf{
-		RPCURL:       conf.C.GetString("eos.RPCURL"),
-		ChainID:      conf.C.GetString("eos.ChainID"),
-		FetchIdleDur: dur,
-		FromBlkNum:   uint32(num),
-		GameAccount:  conf.C.GetString("eos.GameAccount"),
-		ICOAccount:   conf.C.GetString("eos.ICOAccount"),
-		EnableICO:    conf.C.GetBool("eos.EnableICO"),
-		ICOStartTime: conf.C.GetInt64("eos.ICOStartTime"),
-		EOS_CGG:      conf.C.GetFloat64("eos.EOS_CGG"),
-		WalletURL:    conf.C.GetString("eos.WalletURL"),
-		WalletPW:     conf.C.GetString("eos.WalletPW"),
-		TokenSymbol:  conf.C.GetString("eos.TokenSymbol"),
-		TokenAccount: conf.C.GetString("eos.TokenAccount"),
-		TotalAmount:  conf.C.GetFloat64("eos.ICOTotalAmount"),
+		RPCURL:              conf.C.GetString("eos.RPCURL"),
+		ChainID:             conf.C.GetString("eos.ChainID"),
+		FetchIdleDur:        dur,
+		FromBlkNum:          uint32(num),
+		GameAccount:         conf.C.GetString("eos.GameAccount"),
+		ICOAccount:          conf.C.GetString("eos.ICOAccount"),
+		EnableICO:           conf.C.GetBool("eos.EnableICO"),
+		ICOStartTime:        conf.C.GetInt64("eos.ICOStartTime"),
+		EOS_CGG:             conf.C.GetFloat64("eos.EOS_CGG"),
+		WalletURL:           conf.C.GetString("eos.WalletURL"),
+		WalletPW:            conf.C.GetString("eos.WalletPW"),
+		TokenSymbol:         conf.C.GetString("eos.TokenSymbol"),
+		TokenAccount:        conf.C.GetString("eos.TokenAccount"),
+		TotalAmount:         conf.C.GetFloat64("eos.ICOTotalAmount"),
+		LockAccount:         conf.C.GetString("eos.LockAccount"),
+		OfficialLockAccount: conf.C.GetString("eos.OfficialLockAccount"),
+		TotalCGGAmoount:     conf.C.GetFloat64("eos.TotalCGGAmoount"),
 	}
 }
 
-func sendTokens(to string, quan string, memo string) (hash string, err error) {
+func sendTokens(from, to string, quan string, memo string) (hash string, err error) {
 
 	cmd := exec.Command("cleos", "--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "wallet", "unlock", "--password", eosConf.WalletPW)
 	var stdout, stderr bytes.Buffer
@@ -100,15 +109,17 @@ func sendTokens(to string, quan string, memo string) (hash string, err error) {
 		account = eosConf.TokenAccount
 	}
 
-	var sender string
-	if eosConf.EnableICO {
-		sender = eosConf.ICOAccount
-	} else {
-		sender = eosConf.GameAccount
-	}
+	// var sender string
+	// if eosConf.EnableICO {
+	// 	sender = eosConf.ICOAccount
+	// } else if strings.Contains(memo, "unstaked") {
+	// 	sender = eosConf.LockAccount
+	// } else {
+	// 	sender = eosConf.GameAccount
+	// }
 
-	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", sender, to, quan, memo)
-	args := []string{"--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "push", "action", account, "transfer", actionData, "-p", sender + "@active"}
+	actionData := fmt.Sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", from, to, quan, memo)
+	args := []string{"--wallet-url", eosConf.WalletURL, "--url", eosConf.RPCURL, "push", "action", account, "transfer", actionData, "-p", from + "@active"}
 	cmd = exec.Command("cleos", args...)
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -201,16 +212,25 @@ func getCurrencyBalance(c *gin.Context) {
 		}})
 }
 
-func getBalanceRoutine() {
+func updateICOBalance() {
+	result := getBalance(eosConf.ICOAccount, "eosio.token", "EOS")
+	balance, _ := decimal.NewFromString(result)
+	balance = balance.Add(decimal.NewFromFloat(conf.C.GetFloat64("eos.ICOFakeAmount")))
+
+	percent := balance.Div(decimal.NewFromFloat(eosConf.TotalAmount)).Mul(decimal.NewFromFloat(100))
+	setPercent(percent.StringFixed(2))
+}
+
+func getBalance(account string, code string, symbol string) string {
 	// ICOTotalAmount = 60000
 	url := eosConf.RPCURL + "/v1/chain/get_currency_balance"
 
-	payload := strings.NewReader("{\"code\":\"eosio.token\", \"account\":\"" + eosConf.ICOAccount + "\",\"symbol\":\"EOS\"}")
+	payload := strings.NewReader("{\"code\":\"" + code + "\", \"account\":\"" + account + "\",\"symbol\":\"" + symbol + "\"}")
 
 	req, err := http.NewRequest("POST", url, payload)
 	if err != nil {
 		glog.Error(err)
-		return
+		return ""
 	}
 
 	req.Header.Add("Content-Type", "application/json")
@@ -218,7 +238,7 @@ func getBalanceRoutine() {
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		glog.Error(err)
-		return
+		return ""
 	}
 	defer res.Body.Close()
 
@@ -226,20 +246,16 @@ func getBalanceRoutine() {
 	results := []string{}
 	if err := json.Unmarshal(body, &results); err != nil {
 		glog.Error("unmarshal error", err)
-		return
+		return ""
 	}
 	if len(results) != 1 {
-		glog.Warningf("%s balance is 0", eosConf.ICOAccount)
-		return
+		glog.Warningf("%s balance is %d, %v", account, 0, results)
+		return ""
 	}
 	result := strings.Split(results[0], " ")
 	if len(result) != 2 {
 		glog.Error("result 格式有问题")
-		return
+		return ""
 	}
-	balance, _ := decimal.NewFromString(result[0])
-	balance = balance.Add(decimal.NewFromFloat(conf.C.GetFloat64("eos.ICOFakeAmount")))
-
-	percent := balance.Div(decimal.NewFromFloat(eosConf.TotalAmount)).Mul(decimal.NewFromFloat(100))
-	setPercent(percent.StringFixed(2))
+	return result[0]
 }
