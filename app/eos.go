@@ -40,8 +40,8 @@ func Init() {
 	go Forever(updateICOBalance, time.Second*10)
 	go Forever(updateTotalLocked, 1*time.Minute)
 	go Forever(updateCirculat, 1*time.Minute)
-	go checkNotifyRoutine()
-	//
+	// cancel paltform
+	// go checkNotifyRoutine()
 }
 
 // EosConf :

@@ -113,7 +113,9 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 	votechan <- txdb
 
 	go models.AddTx(txdb)
-	go updateUsersFromTX(txdb)
+
+	// cancel paltform
+	// go updateUsersFromTX(txdb)
 	return &msg
 }
 
