@@ -31,8 +31,8 @@ type InvitedUserRsp struct {
 func pageUser(c *gin.Context) {
 	body := &InvitedUserPost{}
 	if err := c.ShouldBind(body); err != nil {
-		// c.JSON(NewMsg(400, "输入参数有误"))
-		c.JSON(NewMsg(400, err.Error()))
+		c.JSON(NewMsg(400, "输入参数有误"))
+		// c.JSON(NewMsg(400, err.Error()))
 		return
 	}
 	users := []*models.User{}
