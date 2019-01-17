@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	"github.com/shopspring/decimal"
 )
 
 var isGameDone bool = true
@@ -16,6 +17,8 @@ var gameResult string
 
 // 奖励是5位数字
 const gameCodeLen int = 6
+
+var cachedgameid int64
 
 var gameChan = make(chan *models.Block, 4096)
 
@@ -36,6 +39,7 @@ func gameRoutine() {
 						glog.Errorf("insert game error %v", err)
 					}
 					gameID := tm / 60
+					cachedgameid = gameID
 
 					// 推送到待处理交易区，判定输赢
 					winchan <- gameorm
@@ -48,6 +52,9 @@ func gameRoutine() {
 					gameResult = ""
 				}
 			} else if isGameDone && tm%60 == 0 {
+				// 揭晓上一分钟的号码
+				totalVotedCGG = decimal.NewFromFloat(0)
+				totalVotedEOS = decimal.NewFromFloat(0)
 				isGameDone = false
 				if isNumber(block.LastLetter()) {
 					gameResult += block.LastLetter()

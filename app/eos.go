@@ -30,6 +30,7 @@ func Init() {
 	db = database.Db.Debug()
 	go gameRoutine()
 	go resloveTXRoutine()
+	go votedRoutine()
 	go checkWinRoutine()
 	if eosConf.EnableICO {
 		go checkICORoutine()

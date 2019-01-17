@@ -1,5 +1,7 @@
 package app
 
+import "github.com/shopspring/decimal"
+
 // ws msg types
 const (
 	block          = 0
@@ -14,11 +16,16 @@ const (
 )
 
 var wsTypes = map[string]int{
-	"lotteryEOSBuy": 101,
-	"lotteryEOSWin": 102,
-	"lotteryCGGBuy": 111,
-	"lotteryCGGWin": 112,
+	"lotteryEOSBuy":        101,
+	"lotteryEOSWin":        102,
+	"lotteryCGGBuy":        111,
+	"lotteryCGGWin":        112,
+	"lotteryCGGTotalVoted": 121,
+	"lotteryEOSTotalVoted": 122,
 }
+
+var totalVotedEOS decimal.Decimal
+var totalVotedCGG decimal.Decimal
 
 const (
 	eos = iota

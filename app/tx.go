@@ -16,6 +16,7 @@ import (
 
 // TODO creat message hub, switch message.Data.(type)
 var txschan = make(chan *models.Message, 4096)
+var votechan = make(chan *models.Tx, 4096)
 
 func resloveTXRoutine() {
 	for {
@@ -108,10 +109,56 @@ func handleTX(coin string, hash string, action models.Action, txsMsg *models.Mes
 		TxID: hash, BlockNum: txsMsg.BlockNum,
 		From: action.Data.From, To: action.Data.To, Amount: amount, CoinID: coinIDs[coin], Memo: action.Data.Memo,
 		Status: pending, TimeMills: txsMsg.TimeMills, TimeMintue: txsMsg.TimeMills / 1000 / 60}
+	// 计算累积投注
+	votechan <- txdb
 
 	go models.AddTx(txdb)
 	go updateUsersFromTX(txdb)
 	return &msg
+}
+
+func votedRoutine() {
+	for {
+		select {
+		case vote := <-votechan:
+			glog.Infof("计算累积投注 %#v, cachegameid is %d", vote, cachedgameid)
+			// if cachedgameid != 0 && vote.TimeMills/1000/60 > cachedgameid {
+			// 	if vote.CoinID == eos {
+			// 		totalVotedEOS = decimal.NewFromFloat(vote.Amount)
+			// 	} else if vote.CoinID == cgg {
+			// 		totalVotedCGG = decimal.NewFromFloat(vote.Amount)
+			// 	}
+			// 	pushVoteMsg(vote)
+			// 	break
+			// }
+
+			if vote.CoinID == eos {
+				totalVotedEOS = totalVotedEOS.Add(decimal.NewFromFloat(vote.Amount))
+			} else if vote.CoinID == cgg {
+				totalVotedCGG = totalVotedCGG.Add(decimal.NewFromFloat(vote.Amount))
+			}
+
+			pushVoteMsg(vote)
+
+		}
+	}
+}
+
+func pushVoteMsg(vote *models.Tx) {
+	votemsgs := []*models.Message{}
+	votemsg := &models.Message{}
+	votemsg.Type = wsTypes["lottery"+coinNames[vote.CoinID]+"TotalVoted"]
+	votemsg.BlockNum = vote.BlockNum
+	votemsg.Hash = vote.TxID
+	votemsg.TimeMills = vote.TimeMills
+	if vote.CoinID == eos {
+		votemsg.Data = map[string]string{"total_voted": totalVotedEOS.StringFixed(4)}
+	} else if vote.CoinID == cgg {
+		votemsg.Data = map[string]string{"total_voted": totalVotedCGG.StringFixed(4)}
+	}
+	votemsgs = append(votemsgs, votemsg)
+	buf, _ := json.Marshal(votemsgs)
+	Huber.broadcast <- buf
 }
 
 type pageTXPost struct {

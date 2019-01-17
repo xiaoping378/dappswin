@@ -17,7 +17,7 @@ ICOAccount = "xiaopingeos2"
 # Token合约地址
 TokenAccount = "xxptoken1234"
 # FromBlkNum = 7529733
-FromBlkNum = 9171980
+FromBlkNum = 9191400
 
 # RPCURL = "https://proxy.eosnode.tools"
 # WalletURL = "unix:///root/eosio-wallet/keosd.sock"
